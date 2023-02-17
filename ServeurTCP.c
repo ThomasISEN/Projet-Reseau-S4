@@ -22,10 +22,10 @@ typedef struct CASE{
 void initMartice(CASE matrice[L][C]);
 void setPixel(CASE matrice[L][C], int posL, int posC, char val[10]);
 char *getMatrice(CASE matrice[L][C]);
-void getSize();
-void getLimits(int pixMin);
-void getVersion();
-void getWaitTime(int timer);
+char *getSize();
+char *getLimits(int pixMin);
+char *getVersion();
+char *getWaitTime(int timer);
 
 
 int main()
@@ -95,7 +95,7 @@ int main()
 		if(socketDialogue < 0)
 		{
 			perror("accept");
-			close(socketDialogue); //pas ca
+			close(socketDialogue); 
 			close(socketEcoute);
 			exit(-4);
 		}
@@ -117,22 +117,17 @@ int main()
 				return 0;
 			default:/* réception de n octets */
 				if(strcmp(messageRecu,"/getMatrice\n")==0){
-					char *repo;
-					repo = (char*)calloc(L*C*9+1, sizeof(char));//il y a 9 char par case et L*C cases +1
 					strcpy(messageEnvoi,getMatrice(matrice));
-					printf("%s", repo);
-					//printf("On charge la Matrice...\n\n");
 				}else if(strcmp(messageRecu,"/getSize\n")==0){
-					getSize();
+					strcpy(messageEnvoi,getSize());
 				}else if(strcmp(messageRecu,"/setPixel\n")==0){
 					setPixel(matrice,1,1,"000000000");
-
 				}else if(strcmp(messageRecu,"/getLimits\n")==0){
-					getLimits(10);
+					strcpy(messageEnvoi,getLimits(10));
 				}else if(strcmp(messageRecu,"/getVersion\n")==0){
-					getVersion();
+					strcpy(messageEnvoi,getVersion());
 				}else if(strcmp(messageRecu,"/getWaitTime\n")==0){
-					getWaitTime(20);
+					strcpy(messageEnvoi,getWaitTime(60));
 				}else{
 					printf("Message reçu : %s (%d octets)\n\n", messageRecu, lus);	
 				}
@@ -140,7 +135,6 @@ int main()
 		}
 
 		// On envoie des données vers le client (cf. protocole)
-		//sprintf(messageEnvoi, "ok\n");
 		ecrits = write(socketDialogue, messageEnvoi, strlen(messageEnvoi));
 		switch(ecrits)
 		{
@@ -183,7 +177,7 @@ void setPixel(CASE matrice[L][C], int posL, int posC, char val[10]){
 
 char *getMatrice(CASE matrice[L][C]){
 	char *matstr;
-	matstr = (char*)calloc(10, sizeof(char));
+	matstr = (char*)calloc(10, sizeof(char));// a changer L*C
 	strcpy(matstr,"");
 	for (int i = 0; i < L; ++i)
 	{
@@ -195,18 +189,34 @@ char *getMatrice(CASE matrice[L][C]){
 	return matstr;
 }
 
-void getSize(){//C et L paramettre de serveur
-	printf("taille de la Matrice: %dx%d\n", C,L);
+char *getSize(){//C et L paramettre de serveur
+	char *size;
+	size = (char*)calloc(20, sizeof(char));
+	sprintf(size, "%d", L);
+	strcat(size, "x");
+	char temp[3];
+	sprintf(temp, "%d", C);
+	strcat(size,temp);
+	return size;
 }
 
-void getLimits(int pixMin){//pixMin paramettre de serveur
-	printf("%d pixels/min\n", pixMin);
+char *getLimits(int pixMin){//pixMin paramettre de serveur
+	char *pixel;
+	pixel = (char*)calloc(3, sizeof(char));
+	sprintf(pixel, "%d", pixMin);
+	return pixel;
 }
 
-void getVersion(){
-	printf("Version: %f\n", VERSION);
+char *getVersion(){
+	char *version;
+	version = (char*)calloc(3, sizeof(char));
+	sprintf(version, "%f", VERSION);
+	return version;
 }
 
-void getWaitTime(int timer){//A identifier par rapport à l'IP client 
-	printf("%d secondes à attendre", timer);
+char *getWaitTime(int timer){//A identifier par rapport à l'IP client 
+	char *time;
+	time = (char*)calloc(3, sizeof(char));
+	sprintf(time, "%d", timer);
+	return time;
 }
