@@ -26,6 +26,8 @@ char *getSize();
 char *getLimits(int pixMin);
 char *getVersion();
 char *getWaitTime(int timer);
+void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]);
+char *selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1]);
 
 
 int main()
@@ -41,7 +43,7 @@ int main()
 	int retour;
 	CASE matrice[L][C];
 	initMartice(matrice);
-	setPixel(matrice, 1, 1, "000000000");
+	//setPixel(matrice, 1, 1, "000000000");
 	//printf("[%s]", matrice[1][1].couleur); //DEBUG
 
 
@@ -116,12 +118,33 @@ int main()
 				close(socketDialogue);
 				return 0;
 			default:/* réception de n octets */
-				if(strcmp(messageRecu,"/getMatrice\n")==0){
-					strcpy(messageEnvoi,getMatrice(matrice));
-				}else if(strcmp(messageRecu,"/getSize\n")==0){
+
+				char *prMot;//le premier mot de la commande
+				prMot = (char*)calloc(LG_MESSAGE, sizeof(char));
+				strcpy(prMot,selectMot(messageRecu, 1, " "));
+				printf("premier mot: %s\n",prMot);
+				if(strcmp(prMot,"/setPixel")==0){
+					printf("set le pixel\n");
+					
+					char *place;// l'emplacement du pixel
+					place = (char*)calloc(LG_MESSAGE, sizeof(char));
+					strcpy(place,selectMot(messageRecu, 2, " "));
+					
+					char *x;// x du pixel
+					x = (char*)calloc(LG_MESSAGE, sizeof(char));
+					strcpy(x,selectMot(place, 1, "x"));
+
+					char *y;// x du pixel
+					y = (char*)calloc(LG_MESSAGE, sizeof(char));
+					strcpy(y,selectMot(place, 2, "x"));
+
+					printf("\nposition: %sx%s\n", x, y);
+				}
+				
+				else if(strcmp(messageRecu,"/getSize\n")==0){
 					strcpy(messageEnvoi,getSize());
-				}else if(strcmp(messageRecu,"/setPixel\n")==0){
-					setPixel(matrice,1,1,"000000000");
+				}else if(strcmp(messageRecu,"/getMatrice\n")==0){
+					strcpy(messageEnvoi,getMatrice(matrice));
 				}else if(strcmp(messageRecu,"/getLimits\n")==0){
 					strcpy(messageEnvoi,getLimits(10));
 				}else if(strcmp(messageRecu,"/getVersion\n")==0){
@@ -220,3 +243,54 @@ char *getWaitTime(int timer){//A identifier par rapport à l'IP client
 	sprintf(time, "%d", timer);
 	return time;
 }
+char *selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1] ){
+	//faire gestion erreur pas de mot / nombre trop grand ou trop petit
+	char *prMot;
+	prMot = (char*)calloc(LG_MESSAGE, sizeof(char));
+	int i,j,cpt;
+	i=0;j=0;cpt=1;
+	//printf("ouii");
+	while (phrase[i]!='\n'  && phrase[i]!='\0')
+	{
+		//printf("%d", i);
+		if (cpt==nombre)//on regarde si on est au mot que l'on veut
+		{
+			prMot[j]=phrase[i];
+			j++;
+		}			
+		//printf("%d/%d\n",phrase[i],*separateur);
+		i++;
+		if (phrase[i]==*separateur)// on passe au mot suivant //strcmp(phrase[i],separateur)==0
+		{
+			i++;
+			cpt++;
+		}
+	}
+	return prMot;
+}
+
+
+void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]){
+    char newString[10][10]; 
+    int i,j,ctr; 
+    j=0; ctr=0;
+
+    for(i=0;i<=(strlen(phrase));i++)
+    {
+        // if space or NULL found, assign NULL into newString[ctr]
+        if(phrase[i]==' '||phrase[i]=='\0')
+        {
+            newString[ctr][j]='\0';
+            ctr++;  //for next word
+            j=0;    //for next word, init index to 0
+        }
+        else
+        {
+            newString[ctr][j]=phrase[i];
+            j++;
+        }
+    }
+    printf("\n Strings or words after split by space are :\n");
+    for(i=0;i < ctr;i++)
+        printf(" %s\n",newString[i]);
+} 
