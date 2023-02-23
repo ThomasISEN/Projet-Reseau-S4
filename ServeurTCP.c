@@ -22,10 +22,13 @@ typedef struct CASE{
 void initMartice(CASE matrice[L][C]);
 void setPixel(CASE matrice[L][C], int posL, int posC, char val[10]);
 char *getMatrice(CASE matrice[L][C]);
-void getSize();
-void getLimits(int pixMin);
-void getVersion();
-void getWaitTime(int timer);
+char *getSize();
+char *getLimits(int pixMin);
+char *getVersion();
+char *getWaitTime(int timer);
+void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]);
+void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot);
+void afficheMatrice(CASE matrice[L][C]);
 
 
 int main()
@@ -41,10 +44,6 @@ int main()
 	int retour;
 	CASE matrice[L][C];
 	initMartice(matrice);
-	setPixel(matrice, 1, 1, "000000000");
-	//printf("[%s]", matrice[1][1].couleur); //DEBUG
-
-
 
 	// Crée un socket de communication
 	socketEcoute = socket(PF_INET, SOCK_STREAM, 0);
@@ -83,7 +82,6 @@ int main()
 
 	printf("Socket placée en écoute passive ...\n");
 
-	//--- Début de l’étape n°7 :
 	// boucle d’attente de connexion : en théorie, un serveur attend indéfiniment !
 	while(1)
 	{
@@ -95,7 +93,7 @@ int main()
 		if(socketDialogue < 0)
 		{
 			perror("accept");
-			close(socketDialogue); //pas ca
+			close(socketDialogue); 
 			close(socketEcoute);
 			exit(-4);
 		}
@@ -116,31 +114,50 @@ int main()
 				close(socketDialogue);
 				return 0;
 			default:/* réception de n octets */
-				if(strcmp(messageRecu,"/getMatrice\n")==0){
-					char *repo;
-					repo = (char*)calloc(L*C*9+1, sizeof(char));//il y a 9 char par case et L*C cases +1
-					strcpy(messageEnvoi,getMatrice(matrice));
-					printf("%s", repo);
-					//printf("On charge la Matrice...\n\n");
-				}else if(strcmp(messageRecu,"/getSize\n")==0){
-					getSize();
-				}else if(strcmp(messageRecu,"/setPixel\n")==0){
-					setPixel(matrice,1,1,"000000000");
 
-				}else if(strcmp(messageRecu,"/getLimits\n")==0){
-					getLimits(10);
-				}else if(strcmp(messageRecu,"/getVersion\n")==0){
-					getVersion();
-				}else if(strcmp(messageRecu,"/getWaitTime\n")==0){
-					getWaitTime(20);
-				}else{
-					printf("Message reçu : %s (%d octets)\n\n", messageRecu, lus);	
+				
+				char prMot[LG_MESSAGE]; //le premier mot de la commande
+				printf("message recu: %s\n", messageRecu);
+				selectMot(messageRecu, 1, " ", prMot);
+				printf("premier mot: '%s'\n",prMot);
+
+				if(strcmp(prMot,"/setPixel\0")==0){
+					//Définition:
+					char place[LG_MESSAGE];
+					char x[LG_MESSAGE];
+					char y[LG_MESSAGE];
+					char couleur[LG_MESSAGE];
+
+					selectMot(messageRecu, 2, " ", place);
+					selectMot(place, 1, "x",x);
+					selectMot(place, 2, "x",y);
+					int xInt = atoi(x);
+					int yInt = atoi(y);
+					
+					selectMot(messageRecu, 3, " ", couleur);
+					setPixel(matrice, yInt, xInt, couleur);
+					strcpy(messageEnvoi," ");
+					//afficheMatrice(matrice);
+
+				} else if(strcmp(messageRecu,"/getSize\n")==0){
+					strcpy(messageEnvoi,getSize());
+				} else if(strcmp(messageRecu,"/getMatrice\n")==0){
+					strcpy(messageEnvoi,getMatrice(matrice));
+				} else if(strcmp(messageRecu,"/getLimits\n")==0){
+					strcpy(messageEnvoi,getLimits(10));
+				} else if(strcmp(messageRecu,"/getVersion\n")==0){
+					strcpy(messageEnvoi,getVersion());
+				} else if(strcmp(messageRecu,"/getWaitTime\n")==0){
+					strcpy(messageEnvoi,getWaitTime(60));
+				} else{
+					printf("Message reçu : %s (%d octets)\n\n", messageRecu, lus);
+					strcpy(messageEnvoi,"Bad Command");
 				}
+				
 
 		}
 
 		// On envoie des données vers le client (cf. protocole)
-		//sprintf(messageEnvoi, "ok\n");
 		ecrits = write(socketDialogue, messageEnvoi, strlen(messageEnvoi));
 		switch(ecrits)
 		{
@@ -159,7 +176,6 @@ int main()
 		// On ferme la socket de dialogue et on se replace en attente ...
 		close(socketDialogue);
 	}
-	//--- Fin de l’étape n°7 !		
 
 	// On ferme la ressource avant de quitter
 	close(socketEcoute);
@@ -181,32 +197,90 @@ void setPixel(CASE matrice[L][C], int posL, int posC, char val[10]){
 	strcpy(matrice[posL][posC].couleur,val);
 }
 
-char *getMatrice(CASE matrice[L][C]){
-	char *matstr;
-	matstr = (char*)calloc(10, sizeof(char));
-	strcpy(matstr,"");
+char* getMatrice(CASE matrice[L][C]) {
+    char* matstr = NULL;
+    int matstr_size = 0;
+    for (int i = 0; i < L; ++i) {
+        for (int j = 0; j < C; ++j) {
+            char* couleur = matrice[i][j].couleur;
+            int couleur_size = strlen(couleur);
+			matstr_size += couleur_size;
+            matstr = (char*)realloc(matstr, matstr_size + 1);// +1 pour le \0
+            strcat(matstr, couleur);   
+        }
+    }
+    return matstr;
+}
+
+char *getSize(){//C et L paramettre de serveur
+	char *size;
+	size = (char*)calloc(20, sizeof(char));
+	sprintf(size, "%d", L);
+	strcat(size, "x");
+	char temp[3];
+	sprintf(temp, "%d", C);
+	strcat(size,temp);
+	return size;
+}
+
+char *getLimits(int pixMin){//pixMin paramettre de serveur
+	char *pixel;
+	pixel = (char*)calloc(3, sizeof(char));
+	sprintf(pixel, "%d", pixMin);
+	return pixel;
+}
+
+char *getVersion(){
+	char *version;
+	version = (char*)calloc(3, sizeof(char));
+	sprintf(version, "%f", VERSION);
+	return version;
+}
+
+char *getWaitTime(int timer){//A identifier par rapport à l'IP client 
+	char *time;
+	time = (char*)calloc(3, sizeof(char));
+	sprintf(time, "%d", timer);
+	return time;
+}
+
+void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot){
+	// faire gestion erreur nombre trop grand ou trop petit
+	int i=0, j=0, cpt=1;
+	
+	while (phrase[i]!='\n'  && phrase[i]!='\0')
+	{
+		if (cpt==nombre)//on regarde si on est au mot que l'on veut
+		{
+			mot[j]=phrase[i];
+			j++;
+		}			
+		i++;
+		if (phrase[i]==*separateur || phrase[i]==' ')// on passe au mot suivant // séparateur : pour le x de la position
+		{
+			i++;
+			cpt++;
+		}
+	}
+	mot[j]='\0';
+
+	//ajout pour gérer les erreurs setPixel
+	if (cpt>3)//trop de mot 
+	{
+		mot[0] = '\0'; // chaîne vide
+	}else if (*separateur=='x' && cpt!=2)//pas assez ou trop d'argument à la commande
+	{
+		mot[0] = '\0'; // chaîne vide
+	}
+}
+
+void afficheMatrice(CASE matrice[L][C]){
 	for (int i = 0; i < L; ++i)
 	{
 		for (int j = 0; j < C; ++j)
 		{
-			strcat(matstr, matrice[i][j].couleur);
+			printf("|%s|",matrice[i][j].couleur);
 		}
+		printf("\n");
 	}
-	return matstr;
-}
-
-void getSize(){//C et L paramettre de serveur
-	printf("taille de la Matrice: %dx%d\n", C,L);
-}
-
-void getLimits(int pixMin){//pixMin paramettre de serveur
-	printf("%d pixels/min\n", pixMin);
-}
-
-void getVersion(){
-	printf("Version: %f\n", VERSION);
-}
-
-void getWaitTime(int timer){//A identifier par rapport à l'IP client 
-	printf("%d secondes à attendre", timer);
 }
