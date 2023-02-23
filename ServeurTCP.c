@@ -119,7 +119,7 @@ int main()
 				char prMot[LG_MESSAGE]; //le premier mot de la commande
 				printf("message recu: %s\n", messageRecu);
 				selectMot(messageRecu, 1, " ", prMot);
-				printf("premier mot: '%s'\n",prMot);
+				//printf("premier mot: '%s'\n",prMot);
 
 				if(strcmp(prMot,"/setPixel\0")==0){
 					//Définition:
