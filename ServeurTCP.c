@@ -6,6 +6,7 @@
 #include <string.h> /* pour memset */
 #include <netinet/in.h> /* pour struct sockaddr_in */
 #include <arpa/inet.h> /* pour htons et inet_aton */
+#include <pthread.h>
 
 
 #define PORT IPPORT_USERRESERVED // = 5000
@@ -20,7 +21,7 @@ typedef struct CASE{
 }CASE;
 
 void initMartice(CASE matrice[L][C]);
-void setPixel(CASE matrice[L][C], int posL, int posC, char val[10]);
+void setPixel(CASE matrice[L][C], int posL, int posC, char *val);
 char *getMatrice(CASE matrice[L][C]);
 char *getSize();
 char *getLimits(int pixMin);
@@ -30,6 +31,60 @@ void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot);
 void afficheMatrice(CASE matrice[L][C]);
 
+typedef struct {
+    int socket;
+    struct sockaddr_in adresse;
+} InfosClient;
+
+void *gererClient(void *arg) {
+    InfosClient infos = *(InfosClient *) arg;
+    int socketDialogue = infos.socket;
+    struct sockaddr_in pointDeRencontreDistant = infos.adresse;
+    char messageEnvoi[LG_MESSAGE];
+    char messageRecu[LG_MESSAGE];
+    int ecrits, lus;
+
+    while (1) {
+        memset(messageEnvoi, 0x00, LG_MESSAGE * sizeof(char));
+        memset(messageRecu, 0x00, LG_MESSAGE * sizeof(char));
+        printf("Attente d'une commande du client %s:%d\n\n", inet_ntoa(pointDeRencontreDistant.sin_addr), ntohs(pointDeRencontreDistant.sin_port));
+
+        // On réceptionne les données du client
+        lus = read(socketDialogue, messageRecu, LG_MESSAGE * sizeof(char));
+        if (lus < 0) {
+            perror("read");
+            break;
+        } else if (lus == 0) {
+            printf("La socket a été fermée par le client %s:%d\n\n", inet_ntoa(pointDeRencontreDistant.sin_addr), ntohs(pointDeRencontreDistant.sin_port));
+            break;
+        }
+
+        // On traite la commande du client
+        if (strcmp(messageRecu, "/quit\n") == 0) {
+            printf("Le client %s:%d a quitté\n\n", inet_ntoa(pointDeRencontreDistant.sin_addr), ntohs(pointDeRencontreDistant.sin_port));
+            break;
+        } else {
+            printf("Message reçu du client %s:%d : %s (%d octets)\n\n", inet_ntoa(pointDeRencontreDistant.sin_addr), ntohs(pointDeRencontreDistant.sin_port), messageRecu, lus);
+            strcpy(messageEnvoi, "Bonjour client");
+        }
+
+        // On envoie des données au client
+        ecrits = write(socketDialogue, messageEnvoi, strlen(messageEnvoi));
+        if (ecrits < 0) {
+            perror("write");
+            break;
+        }
+    }
+
+    // On ferme la socket de dialogue
+    close(socketDialogue);
+
+    // On libère la mémoire allouée pour les informations client
+    free(arg);
+
+    // On termine le thread
+    pthread_exit(NULL);
+}
 
 int main()
 {
@@ -193,8 +248,10 @@ void initMartice(CASE matrice[L][C]){
 	}
 }
 
-void setPixel(CASE matrice[L][C], int posL, int posC, char val[10]){
-	strcpy(matrice[posL][posC].couleur,val);
+void setPixel(CASE matrice[L][C], int posL, int posC, char *val){
+	if (x >= 0 && x < L && y >= 0 && y < C) {
+        strcpy(matrice[x][y].couleur, val);
+    }
 }
 
 char* getMatrice(CASE matrice[L][C]) {
@@ -213,35 +270,27 @@ char* getMatrice(CASE matrice[L][C]) {
 }
 
 char *getSize(){//C et L paramettre de serveur
-	char *size;
-	size = (char*)calloc(20, sizeof(char));
-	sprintf(size, "%d", L);
-	strcat(size, "x");
-	char temp[3];
-	sprintf(temp, "%d", C);
-	strcat(size,temp);
-	return size;
+	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
+    sprintf(resultat, "%dx%d", L, C);
+    return resultat;
 }
 
-char *getLimits(int pixMin){//pixMin paramettre de serveur
-	char *pixel;
-	pixel = (char*)calloc(3, sizeof(char));
-	sprintf(pixel, "%d", pixMin);
-	return pixel;
+char *getLimits(int maxTempsAttente){//maxTempsAttente paramettre de serveur
+	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
+    sprintf(resultat, "Limits: (%d, %d), (%d s)", L, C, maxTempsAttente);
+    return resultat;
 }
 
 char *getVersion(){
-	char *version;
-	version = (char*)calloc(3, sizeof(char));
-	sprintf(version, "%f", VERSION);
-	return version;
+	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
+    sprintf(resultat, "Version: 1.0");
+    return resultat;
 }
 
 char *getWaitTime(int timer){//A identifier par rapport à l'IP client 
-	char *time;
-	time = (char*)calloc(3, sizeof(char));
-	sprintf(time, "%d", timer);
-	return time;
+	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
+    sprintf(resultat, "temps d'attente: %d s", timer);
+    return resultat;
 }
 
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot){
