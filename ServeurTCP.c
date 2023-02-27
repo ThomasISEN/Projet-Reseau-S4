@@ -30,213 +30,45 @@ char *getWaitTime(int timer);
 void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot);
 void afficheMatrice(CASE matrice[L][C]);
+int createSocket();
+void bindSocket(int socketEcoute);
+void listenSocket(int socketEcoute);
+void sendData(int socketDialogue, char *messageEnvoi);
+void receiveData(int socketDialogue, char *messageRecu, CASE matrice[L][C]);
+void attendreConnexion(int socketEcoute, CASE matrice[L][C]);
+
 
 typedef struct {
     int socket;
     struct sockaddr_in adresse;
 } InfosClient;
 
-void *gererClient(void *arg) {
-    InfosClient infos = *(InfosClient *) arg;
-    int socketDialogue = infos.socket;
-    struct sockaddr_in pointDeRencontreDistant = infos.adresse;
-    char messageEnvoi[LG_MESSAGE];
-    char messageRecu[LG_MESSAGE];
-    int ecrits, lus;
-
-    while (1) {
-        memset(messageEnvoi, 0x00, LG_MESSAGE * sizeof(char));
-        memset(messageRecu, 0x00, LG_MESSAGE * sizeof(char));
-        printf("Attente d'une commande du client %s:%d\n\n", inet_ntoa(pointDeRencontreDistant.sin_addr), ntohs(pointDeRencontreDistant.sin_port));
-
-        // On réceptionne les données du client
-        lus = read(socketDialogue, messageRecu, LG_MESSAGE * sizeof(char));
-        if (lus < 0) {
-            perror("read");
-            break;
-        } else if (lus == 0) {
-            printf("La socket a été fermée par le client %s:%d\n\n", inet_ntoa(pointDeRencontreDistant.sin_addr), ntohs(pointDeRencontreDistant.sin_port));
-            break;
-        }
-
-        // On traite la commande du client
-        if (strcmp(messageRecu, "/quit\n") == 0) {
-            printf("Le client %s:%d a quitté\n\n", inet_ntoa(pointDeRencontreDistant.sin_addr), ntohs(pointDeRencontreDistant.sin_port));
-            break;
-        } else {
-            printf("Message reçu du client %s:%d : %s (%d octets)\n\n", inet_ntoa(pointDeRencontreDistant.sin_addr), ntohs(pointDeRencontreDistant.sin_port), messageRecu, lus);
-            strcpy(messageEnvoi, "Bonjour client");
-        }
-
-        // On envoie des données au client
-        ecrits = write(socketDialogue, messageEnvoi, strlen(messageEnvoi));
-        if (ecrits < 0) {
-            perror("write");
-            break;
-        }
-    }
-
-    // On ferme la socket de dialogue
-    close(socketDialogue);
-
-    // On libère la mémoire allouée pour les informations client
-    free(arg);
-
-    // On termine le thread
-    pthread_exit(NULL);
-}
-
 int main()
 {
-	int socketEcoute;
 	struct sockaddr_in pointDeRencontreLocal;
-	socklen_t longueurAdresse;
-	int socketDialogue;
-	struct sockaddr_in pointDeRencontreDistant;
-	char messageEnvoi[LG_MESSAGE];/* le message de la couche Application ! */
-	char messageRecu[LG_MESSAGE];/* le message de la couche Application ! */
 	int ecrits, lus;/* nb d’octets ecrits et lus */
 	int retour;
 	CASE matrice[L][C];
+
 	initMartice(matrice);
 
 	// Crée un socket de communication
-	socketEcoute = socket(PF_INET, SOCK_STREAM, 0);
-	/* 0 indique que l’on utilisera le protocole par défaut associé à SOCK_STREAM soit TCP */
-
-	// Teste la valeur renvoyée par l’appel système socket()
-	if(socketEcoute < 0)/* échec ? */
-	{
-		perror("socket");// Affiche le message d’erreur
-		exit(-1);// On sort en indiquant un code erreur
-	}
-
-	printf("Socket créée avec succès ! (%d)\n", socketEcoute);
-
+	int socketEcoute = createSocket();
 
 	// On prépare l’adresse d’attachement locale
-	longueurAdresse =sizeof(struct sockaddr_in);
-	memset(&pointDeRencontreLocal, 0x00, longueurAdresse);
-	pointDeRencontreLocal.sin_family = PF_INET;
-	pointDeRencontreLocal.sin_addr.s_addr = htonl(INADDR_ANY);// toutes les interfaces locales disponibles
-	pointDeRencontreLocal.sin_port = htons(PORT);
-
 	// On demande l’attachement local de la socket
-	if((bind(socketEcoute, (struct sockaddr *)&pointDeRencontreLocal, longueurAdresse)) < 0)
-		{
-			perror("bind");
-			exit(-2);
-		}
-	printf("Socket attachée avec succès !\n");
-
+	bindSocket(socketEcoute);
+	
 	// On fixe la taille de la file d’attente à 5 (pour les demandes de connexion non encore traitées)
-	if(listen(socketEcoute, 5) < 0){
-		perror("listen");
-		exit(-3);
-	}
-
-	printf("Socket placée en écoute passive ...\n");
+	listenSocket(socketEcoute);
 
 	// boucle d’attente de connexion : en théorie, un serveur attend indéfiniment !
-	while(1)
-	{
-		memset(messageEnvoi, 0x00, LG_MESSAGE*sizeof(char));
-		memset(messageRecu, 0x00, LG_MESSAGE*sizeof(char));
-		printf("Attente d’une demande de connexion (quitter avec Ctrl-C)\n\n");
-		// c’est un appel bloquant
-		socketDialogue = accept(socketEcoute, (struct sockaddr *)&pointDeRencontreDistant, &longueurAdresse);
-		if(socketDialogue < 0)
-		{
-			perror("accept");
-			close(socketDialogue); 
-			close(socketEcoute);
-			exit(-4);
-		}
-
-		printf("Connexion établie avec %s:", inet_ntoa(pointDeRencontreDistant.sin_addr) );
-		printf("%d\n",ntohs(pointDeRencontreDistant.sin_port));
-		
-		// On réceptionne les données du client (cf. protocole)
-		lus = read(socketDialogue, messageRecu, LG_MESSAGE*sizeof(char));// ici appel bloquant
-		switch(lus)
-		{
-			case-1 :/* une erreur ! */
-				perror("read");
-				close(socketDialogue);
-				exit(-5);
-			case 0 :/* la socket est fermée */
-				fprintf(stderr, "La socket a été fermée par le client !\n\n");
-				close(socketDialogue);
-				return 0;
-			default:/* réception de n octets */
-
-				
-				char prMot[LG_MESSAGE]; //le premier mot de la commande
-				printf("message recu: %s\n", messageRecu);
-				selectMot(messageRecu, 1, " ", prMot);
-				//printf("premier mot: '%s'\n",prMot);
-
-				if(strcmp(prMot,"/setPixel\0")==0){
-					//Définition:
-					char place[LG_MESSAGE];
-					char x[LG_MESSAGE];
-					char y[LG_MESSAGE];
-					char couleur[LG_MESSAGE];
-
-					selectMot(messageRecu, 2, " ", place);
-					selectMot(place, 1, "x",x);
-					selectMot(place, 2, "x",y);
-					int xInt = atoi(x);
-					int yInt = atoi(y);
-					
-					selectMot(messageRecu, 3, " ", couleur);
-					setPixel(matrice, yInt, xInt, couleur);
-					strcpy(messageEnvoi," ");
-					//afficheMatrice(matrice);
-
-				} else if(strcmp(messageRecu,"/getSize\n")==0){
-					strcpy(messageEnvoi,getSize());
-				} else if(strcmp(messageRecu,"/getMatrice\n")==0){
-					strcpy(messageEnvoi,getMatrice(matrice));
-				} else if(strcmp(messageRecu,"/getLimits\n")==0){
-					strcpy(messageEnvoi,getLimits(10));
-				} else if(strcmp(messageRecu,"/getVersion\n")==0){
-					strcpy(messageEnvoi,getVersion());
-				} else if(strcmp(messageRecu,"/getWaitTime\n")==0){
-					strcpy(messageEnvoi,getWaitTime(60));
-				} else{
-					printf("Message reçu : %s (%d octets)\n\n", messageRecu, lus);
-					strcpy(messageEnvoi,"Bad Command");
-				}
-				
-
-		}
-
-		// On envoie des données vers le client (cf. protocole)
-		ecrits = write(socketDialogue, messageEnvoi, strlen(messageEnvoi));
-		switch(ecrits)
-		{
-			case-1 :/* une erreur ! */
-				perror("write");
-				close(socketDialogue);
-				exit(-6);
-			case 0:/* la socket est fermée */
-				fprintf(stderr, "La socket a été fermée par le client !\n\n");
-				close(socketDialogue);
-				return 0;
-			default:/* envoi de n octets */
-				printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
-		}
-
-		// On ferme la socket de dialogue et on se replace en attente ...
-		close(socketDialogue);
-	}
+	attendreConnexion(socketEcoute,matrice);
 
 	// On ferme la ressource avant de quitter
 	close(socketEcoute);
 	return 0;
 }
-
 
 void initMartice(CASE matrice[L][C]){
 	for (int i = 0; i < L; ++i)//parcours des lignes
@@ -249,8 +81,8 @@ void initMartice(CASE matrice[L][C]){
 }
 
 void setPixel(CASE matrice[L][C], int posL, int posC, char *val){
-	if (x >= 0 && x < L && y >= 0 && y < C) {
-        strcpy(matrice[x][y].couleur, val);
+	if (posL >= 0 && posL < L && posC >= 0 && posC < C) {
+        strcpy(matrice[posL][posC].couleur, val);
     }
 }
 
@@ -332,4 +164,144 @@ void afficheMatrice(CASE matrice[L][C]){
 		}
 		printf("\n");
 	}
+}
+
+int createSocket() {
+    int socketEcoute = socket(PF_INET, SOCK_STREAM, 0);
+    if (socketEcoute < 0) {
+        perror("socket");
+        exit(-1);
+    }
+    printf("Socket créée avec succès ! (%d)\n", socketEcoute);
+    return socketEcoute;
+}
+
+void bindSocket(int socketEcoute) {
+    struct sockaddr_in pointDeRencontreLocal;
+    socklen_t longueurAdresse = sizeof(struct sockaddr_in);
+    memset(&pointDeRencontreLocal, 0x00, longueurAdresse);
+    pointDeRencontreLocal.sin_family = PF_INET;
+    pointDeRencontreLocal.sin_addr.s_addr = htonl(INADDR_ANY);
+    pointDeRencontreLocal.sin_port = htons(PORT);
+    if (bind(socketEcoute, (struct sockaddr *)&pointDeRencontreLocal, longueurAdresse) < 0) {
+        perror("bind");
+        exit(-2);
+    }
+    printf("Socket attachée avec succès !\n");
+}
+
+void listenSocket(int socketEcoute) {
+    if (listen(socketEcoute, 5) < 0) {
+        perror("listen");
+        exit(-3);
+    }
+    printf("Socket placée en écoute passive ...\n");
+}
+
+void sendData(int socketDialogue, char *messageEnvoi) {
+    int ecrits = write(socketDialogue, messageEnvoi, strlen(messageEnvoi));
+    switch (ecrits) {
+        case -1:
+            perror("write");
+            close(socketDialogue);
+            exit(-6);
+        case 0:
+            fprintf(stderr, "La socket a été fermée par le client !\n\n");
+            close(socketDialogue);
+            exit(0);
+        default:
+            printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
+    }
+}
+
+void receiveData(int socketDialogue, char *messageRecu, CASE matrice[L][C]) {
+    int lus = read(socketDialogue, messageRecu, LG_MESSAGE * sizeof(char));
+    switch (lus) {
+        case -1:
+            perror("read");
+            close(socketDialogue);
+            exit(-5);
+        case 0:
+            fprintf(stderr, "La socket a été fermée par le client !\n\n");
+            close(socketDialogue);
+            exit(0);
+        default:
+			char messageEnvoi[LG_MESSAGE];
+			memset(messageEnvoi, 0x00, LG_MESSAGE * sizeof(char));
+			char prMot[LG_MESSAGE]; //le premier mot de la commande
+			printf("message recu: %s\n", messageRecu);
+			selectMot(messageRecu, 1, " ", prMot);
+			//printf("premier mot: '%s'\n",prMot);
+
+			if(strcmp(prMot,"/setPixel\0")==0){
+				//Définition:
+				char place[LG_MESSAGE];
+				char x[LG_MESSAGE];
+				char y[LG_MESSAGE];
+				char couleur[LG_MESSAGE];
+
+				selectMot(messageRecu, 2, " ", place);
+				selectMot(place, 1, "x",x);
+				selectMot(place, 2, "x",y);
+				int xInt = atoi(x);
+				int yInt = atoi(y);
+				
+				selectMot(messageRecu, 3, " ", couleur);
+				setPixel(matrice, yInt, xInt, couleur);
+				strcpy(messageEnvoi," ");
+				//afficheMatrice(matrice);
+
+			} else if(strcmp(messageRecu,"/getSize\n")==0){
+				strcpy(messageEnvoi,getSize());
+			} else if(strcmp(messageRecu,"/getMatrice\n")==0){
+				strcpy(messageEnvoi,getMatrice(matrice));
+			} else if(strcmp(messageRecu,"/getLimits\n")==0){
+				strcpy(messageEnvoi,getLimits(10));
+			} else if(strcmp(messageRecu,"/getVersion\n")==0){
+				strcpy(messageEnvoi,getVersion());
+			} else if(strcmp(messageRecu,"/getWaitTime\n")==0){
+				strcpy(messageEnvoi,getWaitTime(60));
+			} else{
+				printf("Message reçu : %s (%d octets)\n\n", messageRecu, lus);
+				strcpy(messageEnvoi,"Bad Command");
+			}
+			sendData(socketDialogue, messageEnvoi);
+    }
+}
+
+void attendreConnexion(int socketEcoute, CASE matrice[L][C])
+{
+    int socketDialogue;
+    struct sockaddr_in pointDeRencontreDistant;
+    socklen_t longueurAdresse = sizeof(pointDeRencontreDistant);
+    char messageEnvoi[LG_MESSAGE];
+    char messageRecu[LG_MESSAGE];
+
+    while (1)
+    {
+        memset(messageEnvoi, 0x00, LG_MESSAGE * sizeof(char));
+        memset(messageRecu, 0x00, LG_MESSAGE * sizeof(char));
+        printf("Attente d’une demande de connexion (quitter avec Ctrl-C)\n\n");
+        // c’est un appel bloquant
+        socketDialogue = accept(socketEcoute, (struct sockaddr *)&pointDeRencontreDistant, &longueurAdresse);
+        if (socketDialogue < 0)
+        {
+            perror("accept");
+            close(socketDialogue);
+            close(socketEcoute);
+            exit(-4);
+        }
+
+        printf("Connexion établie avec %s:", inet_ntoa(pointDeRencontreDistant.sin_addr));
+        printf("%d\n", ntohs(pointDeRencontreDistant.sin_port));
+
+        // On réceptionne les données du client (cf. protocole)
+        receiveData(socketDialogue, messageRecu, matrice);
+
+        // On envoie des données vers le client (cf. protocole)
+        //sendData(socketDialogue, messageEnvoi);
+
+        // On ferme la socket de dialogue et on se replace en attente ...
+        close(socketDialogue);
+    }
 }
