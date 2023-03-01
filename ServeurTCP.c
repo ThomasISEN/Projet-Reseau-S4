@@ -21,7 +21,24 @@ typedef struct CASE{
 
 }CASE;
 
-//FONCTION DE JEU
+//-------------HEADER-------------//
+void initMartice(CASE matrice[L][C]);
+void setPixel(CASE matrice[L][C], int posL, int posC, char *val);
+char *getMatrice(CASE matrice[L][C]);
+char *getSize();
+char *getLimits(int pixMin);
+char *getVersion();
+char *getWaitTime(int timer);
+void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]);
+void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot);
+void afficheMatrice(CASE matrice[L][C]);
+int createSocket();
+void bindSocket(int socketEcoute);
+void listenSocket(int socketEcoute);
+void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char messageRecu[LG_MESSAGE], int lus);
+//---------------------------------------//
+
+//-------------FONCTION DE JEU-------------//
 void initMartice(CASE matrice[L][C]){
 	for (int i = 0; i < L; ++i)//parcours des lignes
 	{
@@ -117,10 +134,10 @@ void afficheMatrice(CASE matrice[L][C]){
 		printf("\n");
 	}
 }
+//---------------------------------------//
 
 
-
-
+//-------------FONCTION RESEAU-------------//
 int createSocket() {
     int socketEcoute = socket(PF_INET, SOCK_STREAM, 0);
     if (socketEcoute == -1) {
@@ -198,46 +215,15 @@ void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char me
             strcpy(messageEnvoi,"Bad Command\n");
         }
 }
+//---------------------------------------//
 
 
-
-
-
-
-
-
-int main() {
-    // Création des sockets
-    CASE matrice[L][C];
-    int socketEcoute, client_fds[MAX_CLIENTS];
-    struct sockaddr_in server_addr, client_addr;
+void mainServeur( CASE matrice[L][C], int socketEcoute, int client_fds[MAX_CLIENTS], struct pollfd fds[MAX_CLIENTS + 1]){
+	
+	struct sockaddr_in client_addr;
     socklen_t addrlen = sizeof(client_addr);
 
-    initMartice(matrice);
-
-    // Création du socket serveur
-    socketEcoute = createSocket();
-
-    // Configuration du socket serveur
-    // Association du socket serveur à l'adresse et au port
-    bindSocket(socketEcoute);
-
-    // Mise en écoute du socket serveur
-    listenSocket(socketEcoute);
-
-    // Initialisation des tableaux de sockets et de pollfd
-    struct pollfd fds[MAX_CLIENTS + 1];
-    memset(fds, 0, sizeof(fds));
-    fds[0].fd = socketEcoute;
-    fds[0].events = POLLIN;
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        printf("fd: %d",fds[i].fd);
-        client_fds[i] = -1;
-        fds[i + 1].fd = -1;
-        fds[i + 1].events = POLLIN;
-    }
-
-    // Boucle principale
+	// Boucle principale
     while (1) {
         // Attente d'événements sur les sockets
         int rc = poll(fds, MAX_CLIENTS + 1, -1);
@@ -317,13 +303,53 @@ int main() {
 
         }
     }
-    // Fermeture des sockets
+
+	// Fermeture des sockets
     close(socketEcoute);
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (client_fds[i] != -1) {
             close(client_fds[i]);
         }
     }
+}
+
+
+
+
+
+
+int main() {
+    // Création des sockets
+    CASE matrice[L][C];
+    int socketEcoute, client_fds[MAX_CLIENTS];
+    struct sockaddr_in server_addr;
+	struct pollfd fds[MAX_CLIENTS + 1];
+
+    initMartice(matrice);
+
+    // Création du socket serveur
+    socketEcoute = createSocket();
+
+    // Configuration du socket serveur
+    // Association du socket serveur à l'adresse et au port
+    bindSocket(socketEcoute);
+
+    // Mise en écoute du socket serveur
+    listenSocket(socketEcoute);
+
+    // Initialisation des tableaux de sockets et de pollfd
+	
+    memset(fds, 0, sizeof(fds));
+    fds[0].fd = socketEcoute;
+    fds[0].events = POLLIN;
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        printf("fd: %d",fds[i].fd);
+        client_fds[i] = -1;
+        fds[i + 1].fd = -1;
+        fds[i + 1].events = POLLIN;
+    }
+
+	mainServeur(matrice,socketEcoute, client_fds, fds);
 
     return 0;
 }
