@@ -1,75 +1,27 @@
 #include <stdio.h>
-#include <stdlib.h> /* pour exit */
-#include <unistd.h> /* pour close */
-#include <sys/types.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
 #include <sys/socket.h>
-#include <string.h> /* pour memset */
-#include <netinet/in.h> /* pour struct sockaddr_in */
-#include <arpa/inet.h> /* pour htons et inet_aton */
-#include <pthread.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <poll.h>
 
-
-#define PORT IPPORT_USERRESERVED // = 5000
-#define LG_MESSAGE 256
+#define MAX_CLIENTS 10
+#define LG_MESSAGE 1024
 #define L 4
 #define C 8
 #define VERSION 1.5
+#define PORT 12345
 
 typedef struct CASE{
 	char couleur[10]; //couleur format RRRGGGBBB
 
 }CASE;
 
-void initMartice(CASE matrice[L][C]);
-void setPixel(CASE matrice[L][C], int posL, int posC, char *val);
-char *getMatrice(CASE matrice[L][C]);
-char *getSize();
-char *getLimits(int pixMin);
-char *getVersion();
-char *getWaitTime(int timer);
-void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]);
-void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot);
-void afficheMatrice(CASE matrice[L][C]);
-int createSocket();
-void bindSocket(int socketEcoute);
-void listenSocket(int socketEcoute);
-void sendData(int socketDialogue, char *messageEnvoi);
-void receiveData(int socketDialogue, char *messageRecu, CASE matrice[L][C]);
-void attendreConnexion(int socketEcoute, CASE matrice[L][C]);
-
-
-typedef struct {
-    int socket;
-    struct sockaddr_in adresse;
-} InfosClient;
-
-int main()
-{
-	struct sockaddr_in pointDeRencontreLocal;
-	int ecrits, lus;/* nb d’octets ecrits et lus */
-	int retour;
-	CASE matrice[L][C];
-
-	initMartice(matrice);
-
-	// Crée un socket de communication
-	int socketEcoute = createSocket();
-
-	// On prépare l’adresse d’attachement locale
-	// On demande l’attachement local de la socket
-	bindSocket(socketEcoute);
-	
-	// On fixe la taille de la file d’attente à 5 (pour les demandes de connexion non encore traitées)
-	listenSocket(socketEcoute);
-
-	// boucle d’attente de connexion : en théorie, un serveur attend indéfiniment !
-	attendreConnexion(socketEcoute,matrice);
-
-	// On ferme la ressource avant de quitter
-	close(socketEcoute);
-	return 0;
-}
-
+//FONCTION DE JEU
 void initMartice(CASE matrice[L][C]){
 	for (int i = 0; i < L; ++i)//parcours des lignes
 	{
@@ -166,142 +118,212 @@ void afficheMatrice(CASE matrice[L][C]){
 	}
 }
 
+
+
+
 int createSocket() {
     int socketEcoute = socket(PF_INET, SOCK_STREAM, 0);
-    if (socketEcoute < 0) {
-        perror("socket");
-        exit(-1);
+    if (socketEcoute == -1) {
+        perror("Erreur lors de la création du socket");
+        exit(EXIT_FAILURE);
     }
     printf("Socket créée avec succès ! (%d)\n", socketEcoute);
     return socketEcoute;
 }
 
 void bindSocket(int socketEcoute) {
-    struct sockaddr_in pointDeRencontreLocal;
-    socklen_t longueurAdresse = sizeof(struct sockaddr_in);
-    memset(&pointDeRencontreLocal, 0x00, longueurAdresse);
-    pointDeRencontreLocal.sin_family = PF_INET;
-    pointDeRencontreLocal.sin_addr.s_addr = htonl(INADDR_ANY);
-    pointDeRencontreLocal.sin_port = htons(PORT);
-    if (bind(socketEcoute, (struct sockaddr *)&pointDeRencontreLocal, longueurAdresse) < 0) {
-        perror("bind");
-        exit(-2);
+    struct sockaddr_in server_addr;
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(PORT);
+    if (bind(socketEcoute, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
+        perror("Erreur lors de l'association du socket au port");
+        exit(EXIT_FAILURE);
     }
     printf("Socket attachée avec succès !\n");
 }
 
 void listenSocket(int socketEcoute) {
-    if (listen(socketEcoute, 5) < 0) {
-        perror("listen");
-        exit(-3);
+    if (listen(socketEcoute, 5) == -1) {
+        perror("Erreur lors de la mise en écoute du socket");
+        exit(EXIT_FAILURE);
     }
     printf("Socket placée en écoute passive ...\n");
 }
 
-void sendData(int socketDialogue, char *messageEnvoi) {
-    int ecrits = write(socketDialogue, messageEnvoi, strlen(messageEnvoi));
-    switch (ecrits) {
-        case -1:
-            perror("write");
-            close(socketDialogue);
-            exit(-6);
-        case 0:
-            fprintf(stderr, "La socket a été fermée par le client !\n\n");
-            close(socketDialogue);
-            exit(0);
-        default:
-            printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
-    }
-}
-
-void receiveData(int socketDialogue, char *messageRecu, CASE matrice[L][C]) {
-    int lus = read(socketDialogue, messageRecu, LG_MESSAGE * sizeof(char));
-    switch (lus) {
-        case -1:
-            perror("read");
-            close(socketDialogue);
-            exit(-5);
-        case 0:
-            fprintf(stderr, "La socket a été fermée par le client !\n\n");
-            close(socketDialogue);
-            exit(0);
-        default:
-			char messageEnvoi[LG_MESSAGE];
-			memset(messageEnvoi, 0x00, LG_MESSAGE * sizeof(char));
-			char prMot[LG_MESSAGE]; //le premier mot de la commande
-			printf("message recu: %s\n", messageRecu);
-			selectMot(messageRecu, 1, " ", prMot);
-			//printf("premier mot: '%s'\n",prMot);
-
-			if(strcmp(prMot,"/setPixel\0")==0){
-				//Définition:
-				char place[LG_MESSAGE];
-				char x[LG_MESSAGE];
-				char y[LG_MESSAGE];
-				char couleur[LG_MESSAGE];
-
-				selectMot(messageRecu, 2, " ", place);
-				selectMot(place, 1, "x",x);
-				selectMot(place, 2, "x",y);
-				int xInt = atoi(x);
-				int yInt = atoi(y);
-				
-				selectMot(messageRecu, 3, " ", couleur);
-				setPixel(matrice, yInt, xInt, couleur);
-				strcpy(messageEnvoi," ");
-				//afficheMatrice(matrice);
-
-			} else if(strcmp(messageRecu,"/getSize\n")==0){
-				strcpy(messageEnvoi,getSize());
-			} else if(strcmp(messageRecu,"/getMatrice\n")==0){
-				strcpy(messageEnvoi,getMatrice(matrice));
-			} else if(strcmp(messageRecu,"/getLimits\n")==0){
-				strcpy(messageEnvoi,getLimits(10));
-			} else if(strcmp(messageRecu,"/getVersion\n")==0){
-				strcpy(messageEnvoi,getVersion());
-			} else if(strcmp(messageRecu,"/getWaitTime\n")==0){
-				strcpy(messageEnvoi,getWaitTime(60));
-			} else{
-				printf("Message reçu : %s (%d octets)\n\n", messageRecu, lus);
-				strcpy(messageEnvoi,"Bad Command");
-			}
-			sendData(socketDialogue, messageEnvoi);
-    }
-}
-
-void attendreConnexion(int socketEcoute, CASE matrice[L][C])
-{
-    int socketDialogue;
-    struct sockaddr_in pointDeRencontreDistant;
-    socklen_t longueurAdresse = sizeof(pointDeRencontreDistant);
-    char messageEnvoi[LG_MESSAGE];
-    char messageRecu[LG_MESSAGE];
-
-    while (1)
-    {
+void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char messageRecu[LG_MESSAGE], int lus){
+        
         memset(messageEnvoi, 0x00, LG_MESSAGE * sizeof(char));
-        memset(messageRecu, 0x00, LG_MESSAGE * sizeof(char));
-        printf("Attente d’une demande de connexion (quitter avec Ctrl-C)\n\n");
-        // c’est un appel bloquant
-        socketDialogue = accept(socketEcoute, (struct sockaddr *)&pointDeRencontreDistant, &longueurAdresse);
-        if (socketDialogue < 0)
-        {
-            perror("accept");
-            close(socketDialogue);
-            close(socketEcoute);
-            exit(-4);
+        char prMot[LG_MESSAGE]; //le premier mot de la commande
+        printf("message recu: %s\n", messageRecu);
+        selectMot(messageRecu, 1, " ", prMot);
+
+        if(strcmp(prMot,"/setPixel\0")==0){
+            //Définition:
+            char place[LG_MESSAGE];
+            char x[LG_MESSAGE];
+            char y[LG_MESSAGE];
+            char couleur[LG_MESSAGE];
+
+            selectMot(messageRecu, 2, " ", place);
+            selectMot(place, 1, "x",x);
+            selectMot(place, 2, "x",y);
+            int xInt = atoi(x);
+            int yInt = atoi(y);
+            
+            selectMot(messageRecu, 3, " ", couleur);
+            if (strlen(couleur)==9)
+            {
+                setPixel(matrice, yInt, xInt, couleur);
+                strcpy(messageEnvoi," ");
+            }else
+            {
+                strcpy(messageEnvoi,"Bad Command");
+            }
+            // afficheMatrice(matrice);
+
+        } else if(strcmp(prMot,"/getSize\0")==0){
+            strcpy(messageEnvoi,getSize());
+        } else if(strcmp(prMot,"/getMatrice\0")==0){
+            strcpy(messageEnvoi,getMatrice(matrice));
+        } else if(strcmp(prMot,"/getLimits\0")==0){
+            strcpy(messageEnvoi,getLimits(10));
+        } else if(strcmp(prMot,"/getVersion\0")==0){
+            strcpy(messageEnvoi,getVersion());
+        } else if(strcmp(prMot,"/getWaitTime\0")==0){
+            strcpy(messageEnvoi,getWaitTime(60));
+        } else{
+            printf("Message reçu : %s (%d octets)\n\n", messageRecu, lus);
+            strcpy(messageEnvoi,"Bad Command\n");
+        }
+}
+
+
+
+
+
+
+
+
+int main() {
+    // Création des sockets
+    CASE matrice[L][C];
+    int socketEcoute, client_fds[MAX_CLIENTS];
+    struct sockaddr_in server_addr, client_addr;
+    socklen_t addrlen = sizeof(client_addr);
+
+    initMartice(matrice);
+
+    // Création du socket serveur
+    socketEcoute = createSocket();
+
+    // Configuration du socket serveur
+    // Association du socket serveur à l'adresse et au port
+    bindSocket(socketEcoute);
+
+    // Mise en écoute du socket serveur
+    listenSocket(socketEcoute);
+
+    // Initialisation des tableaux de sockets et de pollfd
+    struct pollfd fds[MAX_CLIENTS + 1];
+    memset(fds, 0, sizeof(fds));
+    fds[0].fd = socketEcoute;
+    fds[0].events = POLLIN;
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        printf("fd: %d",fds[i].fd);
+        client_fds[i] = -1;
+        fds[i + 1].fd = -1;
+        fds[i + 1].events = POLLIN;
+    }
+
+    // Boucle principale
+    while (1) {
+        // Attente d'événements sur les sockets
+        int rc = poll(fds, MAX_CLIENTS + 1, -1);
+        if (rc == -1) {
+            perror("Erreur lors de l'appel à poll()");
+            exit(EXIT_FAILURE);
         }
 
-        printf("Connexion établie avec %s:", inet_ntoa(pointDeRencontreDistant.sin_addr));
-        printf("%d\n", ntohs(pointDeRencontreDistant.sin_port));
+        // Vérification des événements sur le socket serveur
+        if (fds[0].revents & POLLIN) {
+            // Acceptation d'une nouvelle connexion
+            int new_fd = accept(socketEcoute, (struct sockaddr*)&client_addr, &addrlen);
+            if (new_fd == -1) {
+                perror("Erreur lors de l'acceptation de la connexion");
+            } else {
+                // Recherche d'une place libre pour la nouvelle connexion
+                int i;
+                for (i = 0; i < MAX_CLIENTS; i++) {
+                    if (client_fds[i] == -1) {
+                        client_fds[i] = new_fd;
+                        fds[i + 1].fd = new_fd;
+                        printf("Nouvelle connexion : %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+                        break;
+                    }
+                }
+                if (i == MAX_CLIENTS) {
+                    printf("Trop de connexions simultanées, fermeture de la connexion\n");
+                    close(new_fd);
+                }
+            }
+        }
 
-        // On réceptionne les données du client (cf. protocole)
-        receiveData(socketDialogue, messageRecu, matrice);
+        // Vérification des événements sur les sockets clients
+        for (int i = 0; i < MAX_CLIENTS; i++) {
+            char messageEnvoi[LG_MESSAGE];
+            char messageRecu[LG_MESSAGE];
 
-        // On envoie des données vers le client (cf. protocole)
-        //sendData(socketDialogue, messageEnvoi);
+            if (client_fds[i] != -1 && fds[i + 1].revents & POLLIN) {
+                // Lecture des données provenant du client
+                int lus = read(client_fds[i], messageRecu, LG_MESSAGE * sizeof(char));
+                if (lus == -1) {
+                    perror("Erreur lors de la lecture des données");
+                } else if (lus == 0) {
+                    // Déconnexion du client
+                    printf("Déconnexion du client : %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+                    close(client_fds[i]);
+                    client_fds[i] = -1; //liberation de la place dans le tableau de socket
+                    fds[i + 1].fd = -1;
+                } else {
+                    // Affichage du message reçu
+                    messageRecu[lus]='\0';
+                    printf("Message reçu de %s:%d : %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);
 
-        // On ferme la socket de dialogue et on se replace en attente ...
-        close(socketDialogue);
+                    interpretationMsg(matrice, messageEnvoi, messageRecu, lus);
+                    fds[i + 1].events = POLLOUT;
+                    printf("message envoie: %s", messageEnvoi);
+                }
+
+            }else  if (client_fds[i] != -1 && fds[i + 1].revents & POLLOUT) {
+                printf("renvoyer les reponses\n");
+                fds[i + 1].events = POLLIN;
+
+                int ecrits = write(client_fds[i], messageEnvoi, strlen(messageEnvoi));
+                switch (ecrits) {
+                    case -1:
+                        perror("write");
+                        close(client_fds[i]);
+                        exit(-6);
+                    case 0:
+                        fprintf(stderr, "La socket a été fermée par le client !\n\n");
+                        close(client_fds[i]);
+                        exit(0);
+                    default:
+                        printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
+                }
+            }
+
+        }
     }
+    // Fermeture des sockets
+    close(socketEcoute);
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (client_fds[i] != -1) {
+            close(client_fds[i]);
+        }
+    }
+
+    return 0;
 }
