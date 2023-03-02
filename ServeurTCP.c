@@ -62,10 +62,15 @@ char* getMatrice(CASE matrice[L][C]) {
         for (int j = 0; j < C; ++j) {
             char* couleur = matrice[i][j].couleur;
             int couleur_size = strlen(couleur);
-			matstr_size += couleur_size;
-            matstr = (char*)realloc(matstr, matstr_size + 1);// +1 pour le \0
-            strcat(matstr, couleur);   
+			matstr_size += couleur_size+2;
+            matstr = (char*)realloc(matstr, matstr_size +1);
+			strcat(matstr, "|"); 
+            strcat(matstr, couleur);
+			strcat(matstr, "|");
         }
+		matstr_size += 1;
+		matstr = (char*)realloc(matstr, matstr_size + 1);// +1 pour le \0
+		strcat(matstr, "\n"); 
     }
     return matstr;
 }
@@ -193,7 +198,7 @@ void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char me
             if (strlen(couleur)==9)
             {
                 setPixel(matrice, yInt, xInt, couleur);
-                strcpy(messageEnvoi," ");
+                strcpy(messageEnvoi,getMatrice(matrice));
             }else
             {
                 strcpy(messageEnvoi,"Bad Command");
@@ -201,15 +206,28 @@ void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char me
             // afficheMatrice(matrice);
 
         } else if(strcmp(prMot,"/getSize\0")==0){
-            strcpy(messageEnvoi,getSize());
+			strcpy(messageEnvoi,getMatrice(matrice));
+			strcat(messageEnvoi,"\n");
+            strcat(messageEnvoi,getSize());
+			strcat(messageEnvoi,"\n");
         } else if(strcmp(prMot,"/getMatrice\0")==0){
             strcpy(messageEnvoi,getMatrice(matrice));
+			strcat(messageEnvoi,"\n");
         } else if(strcmp(prMot,"/getLimits\0")==0){
-            strcpy(messageEnvoi,getLimits(10));
+			strcpy(messageEnvoi,getMatrice(matrice));
+			strcat(messageEnvoi,"\n");
+            strcat(messageEnvoi,getLimits(10));
+			strcat(messageEnvoi,"\n");
         } else if(strcmp(prMot,"/getVersion\0")==0){
-            strcpy(messageEnvoi,getVersion());
+			strcpy(messageEnvoi,getMatrice(matrice));
+			strcat(messageEnvoi,"\n");
+            strcat(messageEnvoi,getVersion());
+			strcat(messageEnvoi,"\n");
         } else if(strcmp(prMot,"/getWaitTime\0")==0){
-            strcpy(messageEnvoi,getWaitTime(60));
+			strcpy(messageEnvoi,getMatrice(matrice));
+			strcat(messageEnvoi,"\n");
+            strcat(messageEnvoi,getWaitTime(60));
+			strcat(messageEnvoi,"\n");
         } else{
             printf("Message reçu : %s (%d octets)\n\n", messageRecu, lus);
             strcpy(messageEnvoi,"Bad Command\n");
@@ -279,7 +297,7 @@ void mainServeur( CASE matrice[L][C], int socketEcoute, int client_fds[MAX_CLIEN
 
                     interpretationMsg(matrice, messageEnvoi, messageRecu, lus);
                     fds[i + 1].events = POLLOUT;
-                    printf("message envoie: %s", messageEnvoi);
+                    printf("message envoie: %s\n", messageEnvoi);
                 }
 
             }else  if (client_fds[i] != -1 && fds[i + 1].revents & POLLOUT) {
@@ -314,11 +332,50 @@ void mainServeur( CASE matrice[L][C], int socketEcoute, int client_fds[MAX_CLIEN
 }
 
 
+/*
+connecter les paramettres rentrés dans la commande ./serveurTCP [-p PORT] [-s LxH] [-l RATE_LIMIT] dans le programme
+
+
+
+*/
 
 
 
 
-int main() {
+
+int main(int argc, char *argv[]) {
+
+	//Interpretation de la commande du lancement serveur
+    int opt;
+    int port=0, width=0, height=0, rate_limit=0;
+
+	// Vérifie que la commande a la forme attendue
+    if (argc != 7) {
+        fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l RATE_LIMIT]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    while ((opt = getopt(argc, argv, "p:s:l:")) != -1) {
+        switch (opt) {
+            case 'p':
+                port = atoi(optarg);
+                break;
+            case 's':
+                sscanf(optarg, "%dx%d", &width, &height);
+                break;
+            case 'l':
+                rate_limit = atoi(optarg);
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l RATE_LIMIT]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+    printf("Port: %d\n", port);
+    printf("Width: %d\n", width);
+    printf("Height: %d\n", height);
+    printf("Rate limit: %d\n", rate_limit);
+
     // Création des sockets
     CASE matrice[L][C];
     int socketEcoute, client_fds[MAX_CLIENTS];
