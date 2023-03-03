@@ -9,17 +9,28 @@
 #include <sys/types.h>
 #include <poll.h>
 
-#define MAX_CLIENTS 10
+#define MAX_CLIENTS 5
 #define LG_MESSAGE 1024
 #define L 4
 #define C 8
 #define VERSION 1.5
 #define PORT 12345
+//int nClient=0; //identifiants de client
 
 typedef struct CASE{
 	char couleur[10]; //couleur format RRRGGGBBB
 
 }CASE;
+
+typedef struct CLIENT CLIENT;
+
+struct CLIENT{
+	int id;
+	int client_fds;
+	struct pollfd fds;
+	CLIENT *suiv;
+
+};
 
 //-------------HEADER-------------//
 void initMartice(CASE matrice[L][C]);
@@ -36,13 +47,207 @@ int createSocket();
 void bindSocket(int socketEcoute);
 void listenSocket(int socketEcoute);
 void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char messageRecu[LG_MESSAGE], int lus);
+void mainServeur( CASE matrice[L][C], int socketEcoute, CLIENT *liste_client);
+CLIENT* creerClient();
+CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers);
+CLIENT* supprimeClient(CLIENT *liste, int idSup);
+
 //---------------------------------------//
+
+/* A FAIRE
+connecter les paramettres rentrés dans la commande 
+./serveurTCP [-p PORT] [-s LxH] [-l RATE_LIMIT] dans le programme
+
+*/
+
+int main(int argc, char *argv[]) {
+
+	//Interpretation de la commande du lancement serveur
+    int opt;
+    int port=0, width=0, height=0, rate_limit=0;
+
+	// Vérifie que la commande a la forme attendue
+    if (argc != 7) {
+        fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l RATE_LIMIT]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    while ((opt = getopt(argc, argv, "p:s:l:")) != -1) {
+        switch (opt) {
+            case 'p':
+                port = atoi(optarg);
+                break;
+            case 's':
+                sscanf(optarg, "%dx%d", &width, &height);
+                break;
+            case 'l':
+                rate_limit = atoi(optarg);
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l RATE_LIMIT]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    // Création des sockets
+    CASE matrice[L][C];
+	CLIENT *liste_client=NULL;
+    int socketEcoute, client_fds[MAX_CLIENTS];
+    struct sockaddr_in server_addr;
+	struct pollfd serveur_fds;
+
+    initMartice(matrice);
+
+    // Création du socket serveur
+    socketEcoute = createSocket();
+
+    // Configuration du socket serveur
+    // Association du socket serveur à l'adresse et au port
+    bindSocket(socketEcoute);
+
+    // Mise en écoute du socket serveur
+    listenSocket(socketEcoute);
+
+	//lancement du serveur
+	mainServeur(matrice,socketEcoute, liste_client);
+
+    return 0;
+}
+
+void mainServeur( CASE matrice[L][C], int socketEcoute, CLIENT *liste_client){
+
+	struct sockaddr_in client_addr;
+    socklen_t addrlen = sizeof(client_addr);
+	struct pollfd fds[MAX_CLIENTS + 1]; //ajouter le fds du serveur
+	fds[0].fd = socketEcoute;
+    fds[0].events = POLLIN;
+
+
+
+	// Boucle principale
+    while (1) {
+
+		//actualisation de la liste du poll()
+		for (int j = 1; j < (MAX_CLIENTS+1); j++) {
+			fds[j + 1].fd = -1;
+			fds[j + 1].events = POLLIN;
+    	}
+		
+		if (liste_client!=NULL)//liste vide
+		{
+			int i=1;
+			CLIENT *tmp = liste_client;
+			while(tmp!=NULL && i<(MAX_CLIENTS+1)){
+				fds[i]=tmp->fds;
+				tmp->id=i;
+				tmp=tmp->suiv;
+				//printf("client %d: %d",i,fds[i].fd);
+				i++;
+				//printf("%p\n", tmp->suiv);
+			}
+		}
+
+        // Attente d'événements sur les sockets
+        int rc = poll(fds, MAX_CLIENTS + 1, -1);
+        if (rc == -1) {
+            perror("Erreur lors de l'appel à poll()");
+            exit(EXIT_FAILURE);
+        }
+
+        // Vérification des événements sur le socket serveur
+        if (fds[0].revents & POLLIN) {
+            // Acceptation d'une nouvelle connexion
+            int new_fd = accept(socketEcoute, (struct sockaddr*)&client_addr, &addrlen);
+            if (new_fd == -1) {
+                perror("Erreur lors de l'acceptation de la connexion");
+            } else {
+				//on regarde si il n'a a pas trop de clients
+				int i=0;
+				
+				if (liste_client!=NULL)
+				{
+					i=1;
+					CLIENT *tmp = liste_client;
+					while(tmp->suiv!=NULL){
+						tmp=tmp->suiv;
+						i++;
+					}
+				}
+				printf("i: %d\n",i);
+				if (i>= MAX_CLIENTS) {
+                    printf("Trop de connexions simultanées, fermeture de la connexion\n");
+                    close(new_fd);
+                }else
+				{	
+					//nouvelle connexion
+					CLIENT *client=NULL;
+					client= creerClient();
+					client->client_fds = new_fd;
+					client->fds.fd = new_fd;
+					liste_client=ajouterClient(liste_client, client);
+					printf("Nouvelle connexion : %s:%d id:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client->id);
+				}
+            }
+        }
+        // Vérification des événements sur les sockets clients
+        for (int i = 1; i < MAX_CLIENTS; i++) {
+            char messageEnvoi[LG_MESSAGE];
+            char messageRecu[LG_MESSAGE];
+
+            if (fds[i].fd!=-1 && fds[i].revents & POLLIN) {
+                // Lecture des données provenant du client
+                int lus = read(fds[i].fd, messageRecu, LG_MESSAGE * sizeof(char));
+                if (lus == -1) {
+                    perror("Erreur lors de la lecture des données");
+                } else if (lus == 0) {
+                    // Déconnexion du client
+                    printf("Déconnexion du client : %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+                    close(fds[i].fd);
+					liste_client=supprimeClient(liste_client, i);
+                } else {
+                    // Affichage du message reçu
+                    messageRecu[lus]='\0';
+                    printf("Message reçu de %s:%d : %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);
+
+                    interpretationMsg(matrice, messageEnvoi, messageRecu, lus);
+                    fds[i].events = POLLOUT;
+                    printf("message envoie: %s\n", messageEnvoi);
+                }
+
+            }else  if (fds[i].fd!=-1 && fds[i].revents & POLLOUT) {
+                printf("renvoyer les reponses\n");
+                fds[i].events = POLLIN;
+
+                int ecrits = write(fds[i].fd, messageEnvoi, strlen(messageEnvoi));
+                switch (ecrits) {
+                    case -1:
+                        perror("write");
+                        close(fds[i].fd);
+                        exit(-6);
+                    case 0:
+                        fprintf(stderr, "La socket a été fermée par le client !\n\n");
+                        close(fds[i].fd);
+                        exit(0);
+                    default:
+                        printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
+                }
+            }
+
+        }
+    }
+
+	// Fermeture du socket
+    close(socketEcoute);
+
+}
+
+
 
 //-------------FONCTION DE JEU-------------//
 void initMartice(CASE matrice[L][C]){
 	for (int i = 0; i < L; ++i)//parcours des lignes
 	{
-		for (int j = 0; j < C; ++j)//parcours des colonnes 
+		for (int j = 0; j < C; ++j)//parcours des colonnes
 		{
 			strcpy(matrice[i][j].couleur,"255255255");
 		}
@@ -64,13 +269,13 @@ char* getMatrice(CASE matrice[L][C]) {
             int couleur_size = strlen(couleur);
 			matstr_size += couleur_size+2;
             matstr = (char*)realloc(matstr, matstr_size +1);
-			strcat(matstr, "|"); 
+			strcat(matstr, "|");
             strcat(matstr, couleur);
 			strcat(matstr, "|");
         }
 		matstr_size += 1;
 		matstr = (char*)realloc(matstr, matstr_size + 1);// +1 pour le \0
-		strcat(matstr, "\n"); 
+		strcat(matstr, "\n");
     }
     return matstr;
 }
@@ -93,7 +298,7 @@ char *getVersion(){
     return resultat;
 }
 
-char *getWaitTime(int timer){//A identifier par rapport à l'IP client 
+char *getWaitTime(int timer){//A identifier par rapport à l'IP client
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
     sprintf(resultat, "temps d'attente: %d s", timer);
     return resultat;
@@ -102,14 +307,14 @@ char *getWaitTime(int timer){//A identifier par rapport à l'IP client
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot){
 	// faire gestion erreur nombre trop grand ou trop petit
 	int i=0, j=0, cpt=1;
-	
+
 	while (phrase[i]!='\n'  && phrase[i]!='\0')
 	{
 		if (cpt==nombre)//on regarde si on est au mot que l'on veut
 		{
 			mot[j]=phrase[i];
 			j++;
-		}			
+		}
 		i++;
 		if (phrase[i]==*separateur || phrase[i]==' ')// on passe au mot suivant // séparateur : pour le x de la position
 		{
@@ -120,7 +325,7 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur
 	mot[j]='\0';
 
 	//ajout pour gérer les erreurs setPixel
-	if (cpt>3)//trop de mot 
+	if (cpt>3)//trop de mot
 	{
 		mot[0] = '\0'; // chaîne vide
 	}else if (*separateur=='x' && cpt!=2)//pas assez ou trop d'argument à la commande
@@ -175,7 +380,7 @@ void listenSocket(int socketEcoute) {
 }
 
 void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char messageRecu[LG_MESSAGE], int lus){
-        
+
         memset(messageEnvoi, 0x00, LG_MESSAGE * sizeof(char));
         char prMot[LG_MESSAGE]; //le premier mot de la commande
         printf("message recu: %s\n", messageRecu);
@@ -193,7 +398,7 @@ void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char me
             selectMot(place, 2, "x",y);
             int xInt = atoi(x);
             int yInt = atoi(y);
-            
+
             selectMot(messageRecu, 3, " ", couleur);
             if (strlen(couleur)==9)
             {
@@ -236,177 +441,60 @@ void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char me
 //---------------------------------------//
 
 
-void mainServeur( CASE matrice[L][C], int socketEcoute, int client_fds[MAX_CLIENTS], struct pollfd fds[MAX_CLIENTS + 1]){
-	
-	struct sockaddr_in client_addr;
-    socklen_t addrlen = sizeof(client_addr);
-
-	// Boucle principale
-    while (1) {
-        // Attente d'événements sur les sockets
-        int rc = poll(fds, MAX_CLIENTS + 1, -1);
-        if (rc == -1) {
-            perror("Erreur lors de l'appel à poll()");
-            exit(EXIT_FAILURE);
-        }
-
-        // Vérification des événements sur le socket serveur
-        if (fds[0].revents & POLLIN) {
-            // Acceptation d'une nouvelle connexion
-            int new_fd = accept(socketEcoute, (struct sockaddr*)&client_addr, &addrlen);
-            if (new_fd == -1) {
-                perror("Erreur lors de l'acceptation de la connexion");
-            } else {
-                // Recherche d'une place libre pour la nouvelle connexion
-                int i;
-                for (i = 0; i < MAX_CLIENTS; i++) {
-                    if (client_fds[i] == -1) {
-                        client_fds[i] = new_fd;
-                        fds[i + 1].fd = new_fd;
-                        printf("Nouvelle connexion : %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-                        break;
-                    }
-                }
-                if (i == MAX_CLIENTS) {
-                    printf("Trop de connexions simultanées, fermeture de la connexion\n");
-                    close(new_fd);
-                }
-            }
-        }
-
-        // Vérification des événements sur les sockets clients
-        for (int i = 0; i < MAX_CLIENTS; i++) {
-            char messageEnvoi[LG_MESSAGE];
-            char messageRecu[LG_MESSAGE];
-
-            if (client_fds[i] != -1 && fds[i + 1].revents & POLLIN) {
-                // Lecture des données provenant du client
-                int lus = read(client_fds[i], messageRecu, LG_MESSAGE * sizeof(char));
-                if (lus == -1) {
-                    perror("Erreur lors de la lecture des données");
-                } else if (lus == 0) {
-                    // Déconnexion du client
-                    printf("Déconnexion du client : %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-                    close(client_fds[i]);
-                    client_fds[i] = -1; //liberation de la place dans le tableau de socket
-                    fds[i + 1].fd = -1;
-                } else {
-                    // Affichage du message reçu
-                    messageRecu[lus]='\0';
-                    printf("Message reçu de %s:%d : %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);
-
-                    interpretationMsg(matrice, messageEnvoi, messageRecu, lus);
-                    fds[i + 1].events = POLLOUT;
-                    printf("message envoie: %s\n", messageEnvoi);
-                }
-
-            }else  if (client_fds[i] != -1 && fds[i + 1].revents & POLLOUT) {
-                printf("renvoyer les reponses\n");
-                fds[i + 1].events = POLLIN;
-
-                int ecrits = write(client_fds[i], messageEnvoi, strlen(messageEnvoi));
-                switch (ecrits) {
-                    case -1:
-                        perror("write");
-                        close(client_fds[i]);
-                        exit(-6);
-                    case 0:
-                        fprintf(stderr, "La socket a été fermée par le client !\n\n");
-                        close(client_fds[i]);
-                        exit(0);
-                    default:
-                        printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
-                }
-            }
-
-        }
+//-------------FONCTION CLIENT-------------//
+CLIENT* supprimeClient(CLIENT *liste, int idSup){
+    CLIENT *prev = NULL;
+    CLIENT *curr = liste;
+    
+    while (curr != NULL && curr->id != idSup) {
+        prev = curr;
+        curr = curr->suiv;
     }
-
-	// Fermeture des sockets
-    close(socketEcoute);
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (client_fds[i] != -1) {
-            close(client_fds[i]);
-        }
+    
+    if (curr == NULL) {
+        printf("ID not found\n");
+        return liste;
     }
+    
+    if (prev == NULL) {
+        liste = curr->suiv;
+    } else {
+        prev->suiv = curr->suiv;
+    }
+    
+    free(curr);
+    printf("Client with ID %d deleted\n", idSup);
+    
+    return liste;
 }
 
-
-/*
-connecter les paramettres rentrés dans la commande ./serveurTCP [-p PORT] [-s LxH] [-l RATE_LIMIT] dans le programme
-
-
-
-*/
-
-
-
-
-
-int main(int argc, char *argv[]) {
-
-	//Interpretation de la commande du lancement serveur
-    int opt;
-    int port=0, width=0, height=0, rate_limit=0;
-
-	// Vérifie que la commande a la forme attendue
-    if (argc != 7) {
-        fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l RATE_LIMIT]\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-
-    while ((opt = getopt(argc, argv, "p:s:l:")) != -1) {
-        switch (opt) {
-            case 'p':
-                port = atoi(optarg);
-                break;
-            case 's':
-                sscanf(optarg, "%dx%d", &width, &height);
-                break;
-            case 'l':
-                rate_limit = atoi(optarg);
-                break;
-            default:
-                fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l RATE_LIMIT]\n", argv[0]);
-                exit(EXIT_FAILURE);
-        }
-    }
-    printf("Port: %d\n", port);
-    printf("Width: %d\n", width);
-    printf("Height: %d\n", height);
-    printf("Rate limit: %d\n", rate_limit);
-
-    // Création des sockets
-    CASE matrice[L][C];
-    int socketEcoute, client_fds[MAX_CLIENTS];
-    struct sockaddr_in server_addr;
-	struct pollfd fds[MAX_CLIENTS + 1];
-
-    initMartice(matrice);
-
-    // Création du socket serveur
-    socketEcoute = createSocket();
-
-    // Configuration du socket serveur
-    // Association du socket serveur à l'adresse et au port
-    bindSocket(socketEcoute);
-
-    // Mise en écoute du socket serveur
-    listenSocket(socketEcoute);
-
-    // Initialisation des tableaux de sockets et de pollfd
-	
-    memset(fds, 0, sizeof(fds));
-    fds[0].fd = socketEcoute;
-    fds[0].events = POLLIN;
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        printf("fd: %d",fds[i].fd);
-        client_fds[i] = -1;
-        fds[i + 1].fd = -1;
-        fds[i + 1].events = POLLIN;
-    }
-
-	mainServeur(matrice,socketEcoute, client_fds, fds);
-
-    return 0;
+CLIENT* creerClient(){
+	CLIENT *pers = malloc(sizeof(CLIENT));
+	pers->suiv=NULL;
+	pers->id=0;
+	pers->client_fds = -1;
+	pers->fds.fd = -1;
+	pers->fds.events = POLLIN;
+	return pers;
 }
+
+CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers){
+	if (liste==NULL)//liste vide
+	{
+		return pers;
+	}
+	CLIENT *tmp = liste;
+	do{
+		if(tmp->suiv==NULL){
+			tmp->suiv=pers;
+			return tmp;
+		}else{
+			tmp=tmp->suiv;
+		}
+	}while(tmp->suiv!=NULL);
+	tmp->suiv=pers;
+	return liste;
+
+}
+//---------------------------------------//
+
