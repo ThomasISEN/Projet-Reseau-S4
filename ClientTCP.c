@@ -10,10 +10,38 @@
 #define LG_MESSAGE 256
 #define PORT IPPORT_USERRESERVED // = 5000
 
-int main(){
+int main(int argc, char *argv[]){
+
+	//Interpretation de la commande du lancement serveur
+	int opt;
+    int port=0;
+	char *ip = NULL;
+
+
+	// Vérifie que la commande a la forme attendue
+    if (argc != 5) {
+        fprintf(stderr, "Usage: %s [-i IP] [-p PORT]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    while ((opt = getopt(argc, argv, "i:p:")) != -1) {
+        switch (opt) {
+            case 'i':
+                ip = optarg;
+                break;
+            case 'p':
+                port = atoi(optarg);
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-i IP] [-p PORT]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
+
+
 	int descripteurSocket;
-	struct sockaddr_in pointDeRencontreDistant;
-	socklen_t longueurAdresse;
+	struct sockaddr_in serv_addr;
 	char messageEnvoi[LG_MESSAGE];/* le message de la couche Application ! */
 	char messageRecu[LG_MESSAGE];/* le message de la couche Application ! */
 	int ecrits, lus;/* nb d’octets ecrits et lus */
@@ -32,20 +60,15 @@ int main(){
 	printf("Socket créée avec succès ! (%d)\n", descripteurSocket);
 
 
-	// Obtient la longueur en octets de la structure sockaddr_in
-	longueurAdresse =sizeof(pointDeRencontreDistant);
-	// Initialise à 0 la structure sockaddr_in
-	memset(&pointDeRencontreDistant, 0x00, longueurAdresse);
-	// Renseigne la structure sockaddr_in avec les informations du serveur distant
-	pointDeRencontreDistant.sin_family = PF_INET;
-	// On choisit le numéro de port d’écoute du serveur
-	pointDeRencontreDistant.sin_port = htons(IPPORT_USERRESERVED);// = 5000
-	// On choisit l’adresse IPv4 du serveur
-	inet_aton("127.0.0.1", &pointDeRencontreDistant.sin_addr);// à modifier selon ses besoins
+	// les info serveur
+	memset(&serv_addr, 0, sizeof(serv_addr));
+	serv_addr.sin_family = PF_INET;
+	serv_addr.sin_port = htons(port); //port serv
+	serv_addr.sin_addr.s_addr = inet_addr(ip); //ip serv
 	
-	// Débute la connexion vers le processus serveur distant
-	if((connect(descripteurSocket, (struct sockaddr *)&pointDeRencontreDistant,longueurAdresse)) == -1){
-		perror("connect");// Affiche le message d’erreur
+	// connexion vers le serveur
+	if((connect(descripteurSocket, (struct sockaddr *)&serv_addr,sizeof(serv_addr))) == -1){
+		perror("Connexion vers le serveur à échouée");// Affiche le message d’erreur
 		close(descripteurSocket);// On ferme la ressource avant de quitter
 		exit(-2);// On sort en indiquant un code erreur
 	}

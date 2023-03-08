@@ -9,13 +9,12 @@
 #include <sys/types.h>
 #include <poll.h>
 
-#define MAX_CLIENTS 5
+//#define maxClients 5
 #define LG_MESSAGE 1024
-#define L 4
-#define C 8
+//#define L 4
+//#define C 8
 #define VERSION 1.5
-#define PORT 12345
-//int nClient=0; //identifiants de client
+//#define PORT 12345
 
 typedef struct CASE{
 	char couleur[10]; //couleur format RRRGGGBBB
@@ -33,42 +32,36 @@ struct CLIENT{
 };
 
 //-------------HEADER-------------//
-void initMartice(CASE matrice[L][C]);
-void setPixel(CASE matrice[L][C], int posL, int posC, char *val);
-char *getMatrice(CASE matrice[L][C]);
-char *getSize();
-char *getLimits(int pixMin);
+void initMartice(CASE *matrice, int taille);
+void setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val);
+char *getMatrice(CASE *matrice, int taille);
+char *getSize(int l, int c);
+char *getLimits(int l, int c,int maxTempsAttente);
 char *getVersion();
 char *getWaitTime(int timer);
 void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot);
-void afficheMatrice(CASE matrice[L][C]);
+void afficheMatrice(CASE *matrice);
 int createSocket();
-void bindSocket(int socketEcoute);
+void bindSocket(int socketEcoute, int port);
 void listenSocket(int socketEcoute);
-void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char messageRecu[LG_MESSAGE], int lus);
-void mainServeur( CASE matrice[L][C], int socketEcoute, CLIENT *liste_client);
+void interpretationMsg(CASE *matrice, int l, int c, char messageEnvoi[LG_MESSAGE],char messageRecu[LG_MESSAGE], int lus);
+void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int maxClients);
 CLIENT* creerClient();
 CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers);
 CLIENT* supprimeClient(CLIENT *liste, int idSup);
+CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients);
 
 //---------------------------------------//
-
-/* A FAIRE
-connecter les paramettres rentrés dans la commande 
-./serveurTCP [-p PORT] [-s LxH] [-l RATE_LIMIT] dans le programme
-
-*/
-
 int main(int argc, char *argv[]) {
 
 	//Interpretation de la commande du lancement serveur
     int opt;
-    int port=0, width=0, height=0, rate_limit=0;
+    int port=0, c=0, l=0, maxClients=0;
 
 	// Vérifie que la commande a la forme attendue
     if (argc != 7) {
-        fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l RATE_LIMIT]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l MAX_CLIENTS]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -78,66 +71,64 @@ int main(int argc, char *argv[]) {
                 port = atoi(optarg);
                 break;
             case 's':
-                sscanf(optarg, "%dx%d", &width, &height);
+                sscanf(optarg, "%dx%d", &c, &l);
                 break;
             case 'l':
-                rate_limit = atoi(optarg);
+                maxClients = atoi(optarg);
                 break;
             default:
-                fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l RATE_LIMIT]\n", argv[0]);
+                fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l MAX_CLIENTS]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
 
     // Création des sockets
-    CASE matrice[L][C];
+    CASE matrice[l*c];
 	CLIENT *liste_client=NULL;
-    int socketEcoute, client_fds[MAX_CLIENTS];
+    int socketEcoute, client_fds[maxClients];
     struct sockaddr_in server_addr;
 	struct pollfd serveur_fds;
 
-    initMartice(matrice);
+    initMartice(matrice, l*c);
 
     // Création du socket serveur
     socketEcoute = createSocket();
 
     // Configuration du socket serveur
     // Association du socket serveur à l'adresse et au port
-    bindSocket(socketEcoute);
+    bindSocket(socketEcoute, port);
 
     // Mise en écoute du socket serveur
     listenSocket(socketEcoute);
 
 	//lancement du serveur
-	mainServeur(matrice,socketEcoute, liste_client);
+	mainServeur(matrice, l, c, socketEcoute, liste_client, maxClients);
 
     return 0;
 }
 
-void mainServeur( CASE matrice[L][C], int socketEcoute, CLIENT *liste_client){
+void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int maxClients){
 
 	struct sockaddr_in client_addr;
     socklen_t addrlen = sizeof(client_addr);
-	struct pollfd fds[MAX_CLIENTS + 1]; //ajouter le fds du serveur
+	struct pollfd fds[maxClients + 1]; //ajouter le fds du serveur
 	fds[0].fd = socketEcoute;
     fds[0].events = POLLIN;
-
-
 
 	// Boucle principale
     while (1) {
 
 		//actualisation de la liste du poll()
-		for (int j = 1; j < (MAX_CLIENTS+1); j++) {
-			fds[j + 1].fd = -1;
-			fds[j + 1].events = POLLIN;
+		for (int j = 1; j < (maxClients+1); j++) {
+			fds[j].fd = -1;
+			fds[j].events = POLLIN;
     	}
 		
 		if (liste_client!=NULL)//liste vide
 		{
 			int i=1;
 			CLIENT *tmp = liste_client;
-			while(tmp!=NULL && i<(MAX_CLIENTS+1)){
+			while(tmp!=NULL && i<(maxClients+1)){
 				fds[i]=tmp->fds;
 				tmp->id=i;
 				tmp=tmp->suiv;
@@ -148,7 +139,7 @@ void mainServeur( CASE matrice[L][C], int socketEcoute, CLIENT *liste_client){
 		}
 
         // Attente d'événements sur les sockets
-        int rc = poll(fds, MAX_CLIENTS + 1, -1);
+        int rc = poll(fds, maxClients + 1, -1);
         if (rc == -1) {
             perror("Erreur lors de l'appel à poll()");
             exit(EXIT_FAILURE);
@@ -163,7 +154,6 @@ void mainServeur( CASE matrice[L][C], int socketEcoute, CLIENT *liste_client){
             } else {
 				//on regarde si il n'a a pas trop de clients
 				int i=0;
-				
 				if (liste_client!=NULL)
 				{
 					i=1;
@@ -174,7 +164,7 @@ void mainServeur( CASE matrice[L][C], int socketEcoute, CLIENT *liste_client){
 					}
 				}
 				printf("i: %d\n",i);
-				if (i>= MAX_CLIENTS) {
+				if (i>= maxClients) {
                     printf("Trop de connexions simultanées, fermeture de la connexion\n");
                     close(new_fd);
                 }else
@@ -190,7 +180,7 @@ void mainServeur( CASE matrice[L][C], int socketEcoute, CLIENT *liste_client){
             }
         }
         // Vérification des événements sur les sockets clients
-        for (int i = 1; i < MAX_CLIENTS; i++) {
+        for (int i = 1; i < maxClients; i++) {
             char messageEnvoi[LG_MESSAGE];
             char messageRecu[LG_MESSAGE];
 
@@ -209,14 +199,14 @@ void mainServeur( CASE matrice[L][C], int socketEcoute, CLIENT *liste_client){
                     messageRecu[lus]='\0';
                     printf("Message reçu de %s:%d : %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);
 
-                    interpretationMsg(matrice, messageEnvoi, messageRecu, lus);
-                    fds[i].events = POLLOUT;
-                    printf("message envoie: %s\n", messageEnvoi);
+                    interpretationMsg(matrice, l, c, messageEnvoi, messageRecu, lus);
+                    // Mise à jour de l'état du client
+                    liste_client = actualiseClient(liste_client, fds, maxClients);
                 }
 
             }else  if (fds[i].fd!=-1 && fds[i].revents & POLLOUT) {
-                printf("renvoyer les reponses\n");
-                fds[i].events = POLLIN;
+                // Mise à jour de l'état du client
+                liste_client = actualiseClient(liste_client, fds, maxClients);
 
                 int ecrits = write(fds[i].fd, messageEnvoi, strlen(messageEnvoi));
                 switch (ecrits) {
@@ -244,57 +234,58 @@ void mainServeur( CASE matrice[L][C], int socketEcoute, CLIENT *liste_client){
 
 
 //-------------FONCTION DE JEU-------------//
-void initMartice(CASE matrice[L][C]){
-	for (int i = 0; i < L; ++i)//parcours des lignes
-	{
-		for (int j = 0; j < C; ++j)//parcours des colonnes
-		{
-			strcpy(matrice[i][j].couleur,"255255255");
-		}
-	}
-}
-
-void setPixel(CASE matrice[L][C], int posL, int posC, char *val){
-	if (posL >= 0 && posL < L && posC >= 0 && posC < C) {
-        strcpy(matrice[posL][posC].couleur, val);
+void initMartice(CASE *matrice, int taille){
+    for(int i = 0; i < taille; i++) {
+        strcpy(matrice[i].couleur,"255255255");
     }
+    printf("matrice initialisée avec succes.\n");
 }
 
-char* getMatrice(CASE matrice[L][C]) {
+void setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val){
+	if (posL >= 0 && posL < l && posC >= 0 && posC < c) {
+        strcpy(matrice[(posL*c)+posC].couleur, val); //(posL*c)+posC valeur sur un tableau 1D d'une position en tableau 2D
+        //return 00; //OK
+    }else
+    {
+        printf("Out of Bounds\n");
+        // return 11;//Out of Bounds
+    }
+    
+}
+
+char* getMatrice(CASE *matrice, int taille) {
     char* matstr = NULL;
     int matstr_size = 0;
-    for (int i = 0; i < L; ++i) {
-        for (int j = 0; j < C; ++j) {
-            char* couleur = matrice[i][j].couleur;
-            int couleur_size = strlen(couleur);
-			matstr_size += couleur_size+2;
-            matstr = (char*)realloc(matstr, matstr_size +1);
-			strcat(matstr, "|");
-            strcat(matstr, couleur);
-			strcat(matstr, "|");
-        }
-		matstr_size += 1;
-		matstr = (char*)realloc(matstr, matstr_size + 1);// +1 pour le \0
-		strcat(matstr, "\n");
+    for (int i = 0; i < taille; ++i) {
+        char* couleur = matrice[i].couleur;
+        int couleur_size = strlen(couleur);
+        matstr_size += couleur_size+2;
+        matstr = (char*)realloc(matstr, matstr_size +1);
+        //strcat(matstr, "|");
+        strcat(matstr, couleur);
+        //strcat(matstr, "|");
     }
+    // matstr_size += 1;
+    // matstr = (char*)realloc(matstr, matstr_size + 1);// +1 pour le \0
+    //strcat(matstr, "\n");
     return matstr;
 }
 
-char *getSize(){//C et L paramettre de serveur
+char *getSize(int l, int c){//C et L paramettre de serveur
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
-    sprintf(resultat, "%dx%d", L, C);
+    sprintf(resultat, "%dx%d", l, c);
     return resultat;
 }
 
-char *getLimits(int maxTempsAttente){//maxTempsAttente paramettre de serveur
+char *getLimits(int l, int c,int maxTempsAttente){//maxTempsAttente paramettre de serveur
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
-    sprintf(resultat, "Limits: (%d, %d), (%d s)", L, C, maxTempsAttente);
+    sprintf(resultat, "Limits: (%d, %d), (%d s)", l, c, maxTempsAttente);
     return resultat;
 }
 
 char *getVersion(){
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
-    sprintf(resultat, "Version: 1.0");
+    sprintf(resultat, "Version: 2.0");
     return resultat;
 }
 
@@ -334,16 +325,16 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur
 	}
 }
 
-void afficheMatrice(CASE matrice[L][C]){
-	for (int i = 0; i < L; ++i)
-	{
-		for (int j = 0; j < C; ++j)
-		{
-			printf("|%s|",matrice[i][j].couleur);
-		}
-		printf("\n");
-	}
-}
+// void afficheMatrice(CASE *matrice){
+// 	for (int i = 0; i < L; ++i)
+// 	{
+// 		for (int j = 0; j < C; ++j)
+// 		{
+// 			printf("|%s|",matrice[i][j].couleur);
+// 		}
+// 		printf("\n");
+// 	}
+// }
 //---------------------------------------//
 
 
@@ -358,12 +349,12 @@ int createSocket() {
     return socketEcoute;
 }
 
-void bindSocket(int socketEcoute) {
+void bindSocket(int socketEcoute, int port) {
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(PORT);
+    server_addr.sin_port = htons(port);
     if (bind(socketEcoute, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
         perror("Erreur lors de l'association du socket au port");
         exit(EXIT_FAILURE);
@@ -379,7 +370,7 @@ void listenSocket(int socketEcoute) {
     printf("Socket placée en écoute passive ...\n");
 }
 
-void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char messageRecu[LG_MESSAGE], int lus){
+void interpretationMsg(CASE *matrice, int l, int c, char messageEnvoi[LG_MESSAGE],char messageRecu[LG_MESSAGE], int lus){
 
         memset(messageEnvoi, 0x00, LG_MESSAGE * sizeof(char));
         char prMot[LG_MESSAGE]; //le premier mot de la commande
@@ -396,46 +387,39 @@ void interpretationMsg(CASE matrice[L][C], char messageEnvoi[LG_MESSAGE],char me
             selectMot(messageRecu, 2, " ", place);
             selectMot(place, 1, "x",x);
             selectMot(place, 2, "x",y);
-            int xInt = atoi(x);
-            int yInt = atoi(y);
+            int posC = atoi(x);
+            int posL = atoi(y);
+            if (posC>=c || posC<0 || posL>=l || posL<0)
+            {
+                strcpy(messageEnvoi,"Out of Bounds");
+                // return 11;//Out of Bounds
+            }
+            
 
             selectMot(messageRecu, 3, " ", couleur);
             if (strlen(couleur)==9)
             {
-                setPixel(matrice, yInt, xInt, couleur);
-                strcpy(messageEnvoi,getMatrice(matrice));
+                setPixel(matrice, posL, posC, l, c, couleur);
+                strcpy(messageEnvoi,getMatrice(matrice, l*c));
             }else
             {
+                // return 10;//Bad Command
                 strcpy(messageEnvoi,"Bad Command");
             }
-            // afficheMatrice(matrice);
 
         } else if(strcmp(prMot,"/getSize\0")==0){
-			strcpy(messageEnvoi,getMatrice(matrice));
-			strcat(messageEnvoi,"\n");
-            strcat(messageEnvoi,getSize());
-			strcat(messageEnvoi,"\n");
+            strcpy(messageEnvoi,getSize(l, c));
         } else if(strcmp(prMot,"/getMatrice\0")==0){
-            strcpy(messageEnvoi,getMatrice(matrice));
-			strcat(messageEnvoi,"\n");
+            strcpy(messageEnvoi,getMatrice(matrice, l*c));
         } else if(strcmp(prMot,"/getLimits\0")==0){
-			strcpy(messageEnvoi,getMatrice(matrice));
-			strcat(messageEnvoi,"\n");
-            strcat(messageEnvoi,getLimits(10));
-			strcat(messageEnvoi,"\n");
+            strcpy(messageEnvoi,getLimits(l, c, 5));
         } else if(strcmp(prMot,"/getVersion\0")==0){
-			strcpy(messageEnvoi,getMatrice(matrice));
-			strcat(messageEnvoi,"\n");
-            strcat(messageEnvoi,getVersion());
-			strcat(messageEnvoi,"\n");
+            strcpy(messageEnvoi,getVersion());
         } else if(strcmp(prMot,"/getWaitTime\0")==0){
-			strcpy(messageEnvoi,getMatrice(matrice));
-			strcat(messageEnvoi,"\n");
-            strcat(messageEnvoi,getWaitTime(60));
-			strcat(messageEnvoi,"\n");
+            strcpy(messageEnvoi,getWaitTime(60));
         } else{
             printf("Message reçu : %s (%d octets)\n\n", messageRecu, lus);
-            strcpy(messageEnvoi,"Bad Command\n");
+            strcpy(messageEnvoi,"Bad Command");
         }
 }
 //---------------------------------------//
@@ -495,6 +479,34 @@ CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers){
 	tmp->suiv=pers;
 	return liste;
 
+}
+
+CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients) {
+    struct CLIENT *ptr = liste_client;
+
+    // Parcourir la liste chainée
+    while (ptr != NULL) {
+        int client_fd = ptr->fds.fd;
+
+        // Trouver le pollfd correspondant
+        int i;
+        for (i = 1; i < maxClients; i++) {
+            if (fds[i].fd == client_fd) {
+                break;
+            }
+        }
+
+        // Actualiser l'état du client
+        if (fds[i].revents & POLLIN) {
+            ptr->fds.events = POLLOUT;
+        } else if (fds[i].revents & POLLOUT) {
+            ptr->fds.events = POLLIN;
+        }
+
+        ptr = ptr->suiv;
+    }
+
+    return liste_client;
 }
 //---------------------------------------//
 
