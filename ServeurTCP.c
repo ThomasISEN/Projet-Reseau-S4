@@ -9,12 +9,7 @@
 #include <sys/types.h>
 #include <poll.h>
 
-//#define maxClients 5
 #define LG_MESSAGE 1024
-//#define L 4
-//#define C 8
-#define VERSION 1.5
-//#define PORT 12345
 
 typedef struct CASE{
 	char couleur[10]; //couleur format RRRGGGBBB
@@ -33,7 +28,7 @@ struct CLIENT{
 
 //-------------HEADER-------------//
 void initMartice(CASE *matrice, int taille);
-void setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val);
+char *setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val);
 char *getMatrice(CASE *matrice, int taille);
 char *getSize(int l, int c);
 char *getLimits(int l, int c,int maxTempsAttente);
@@ -45,12 +40,13 @@ void afficheMatrice(CASE *matrice);
 int createSocket();
 void bindSocket(int socketEcoute, int port);
 void listenSocket(int socketEcoute);
-void interpretationMsg(CASE *matrice, int l, int c, char messageEnvoi[LG_MESSAGE],char messageRecu[LG_MESSAGE], int lus);
+char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]);
 void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int maxClients);
 CLIENT* creerClient();
 CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers);
 CLIENT* supprimeClient(CLIENT *liste, int idSup);
 CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients);
+char* base64_encode(const unsigned char* input, size_t input_len);
 
 //---------------------------------------//
 int main(int argc, char *argv[]) {
@@ -94,8 +90,7 @@ int main(int argc, char *argv[]) {
     // Création du socket serveur
     socketEcoute = createSocket();
 
-    // Configuration du socket serveur
-    // Association du socket serveur à l'adresse et au port
+    // Configuration du socket serveur avec l'adresse et le port
     bindSocket(socketEcoute, port);
 
     // Mise en écoute du socket serveur
@@ -199,7 +194,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
                     messageRecu[lus]='\0';
                     printf("Message reçu de %s:%d : %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);
 
-                    interpretationMsg(matrice, l, c, messageEnvoi, messageRecu, lus);
+                    strcpy(messageEnvoi,interpretationMsg(matrice, l, c, messageRecu));
                     // Mise à jour de l'état du client
                     liste_client = actualiseClient(liste_client, fds, maxClients);
                 }
@@ -213,13 +208,15 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
                     case -1:
                         perror("write");
                         close(fds[i].fd);
+                        liste_client=supprimeClient(liste_client, i);
                         exit(-6);
                     case 0:
                         fprintf(stderr, "La socket a été fermée par le client !\n\n");
                         close(fds[i].fd);
+                        liste_client=supprimeClient(liste_client, i);
                         exit(0);
                     default:
-                        printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
+                        //printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
                 }
             }
 
@@ -234,6 +231,37 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 
 
 //-------------FONCTION DE JEU-------------//
+char* base64_encode(const unsigned char* data, size_t input_length) {
+    static const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    size_t output_length = 4 * ((input_length + 2) / 3);
+    char *encoded_data = malloc(output_length + 1);
+    if (encoded_data == NULL) return NULL;
+
+    size_t i, j;
+    uint32_t octet_a, octet_b, octet_c, triple;
+
+    for (i = 0, j = 0; i < input_length;) {
+        octet_a = data[i++];
+        octet_b = (i < input_length) ? data[i++] : 0;
+        octet_c = (i < input_length) ? data[i++] : 0;
+        triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+
+        encoded_data[j++] = base64_table[(triple >> 3 * 6) & 0x3F];
+        encoded_data[j++] = base64_table[(triple >> 2 * 6) & 0x3F];
+        encoded_data[j++] = base64_table[(triple >> 1 * 6) & 0x3F];
+        encoded_data[j++] = base64_table[(triple >> 0 * 6) & 0x3F];
+    }
+
+    // Ajoute les caractères '=' uniquement si nécessaire
+    for (i = 0; i < (3 - (j % 3)) % 3; i++) {
+        encoded_data[j++] = '=';
+    }
+
+    encoded_data[j] = '\0';
+
+    return encoded_data;
+}
+
 void initMartice(CASE *matrice, int taille){
     for(int i = 0; i < taille; i++) {
         strcpy(matrice[i].couleur,"255255255");
@@ -241,14 +269,14 @@ void initMartice(CASE *matrice, int taille){
     printf("matrice initialisée avec succes.\n");
 }
 
-void setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val){
+char *setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val){
 	if (posL >= 0 && posL < l && posC >= 0 && posC < c) {
         strcpy(matrice[(posL*c)+posC].couleur, val); //(posL*c)+posC valeur sur un tableau 1D d'une position en tableau 2D
-        //return 00; //OK
+        return "00\0"; //OK
     }else
     {
         printf("Out of Bounds\n");
-        // return 11;//Out of Bounds
+        return "11\0";//Out of Bounds
     }
     
 }
@@ -273,7 +301,7 @@ char* getMatrice(CASE *matrice, int taille) {
 
 char *getSize(int l, int c){//C et L paramettre de serveur
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
-    sprintf(resultat, "%dx%d", l, c);
+    sprintf(resultat, "Taille: %dx%d", l, c);
     return resultat;
 }
 
@@ -296,7 +324,6 @@ char *getWaitTime(int timer){//A identifier par rapport à l'IP client
 }
 
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot){
-	// faire gestion erreur nombre trop grand ou trop petit
 	int i=0, j=0, cpt=1;
 
 	while (phrase[i]!='\n'  && phrase[i]!='\0')
@@ -316,7 +343,7 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur
 	mot[j]='\0';
 
 	//ajout pour gérer les erreurs setPixel
-	if (cpt>3)//trop de mot
+	if (cpt>3)//trop de mot pour la commande SetPixel
 	{
 		mot[0] = '\0'; // chaîne vide
 	}else if (*separateur=='x' && cpt!=2)//pas assez ou trop d'argument à la commande
@@ -324,17 +351,6 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur
 		mot[0] = '\0'; // chaîne vide
 	}
 }
-
-// void afficheMatrice(CASE *matrice){
-// 	for (int i = 0; i < L; ++i)
-// 	{
-// 		for (int j = 0; j < C; ++j)
-// 		{
-// 			printf("|%s|",matrice[i][j].couleur);
-// 		}
-// 		printf("\n");
-// 	}
-// }
 //---------------------------------------//
 
 
@@ -370,11 +386,9 @@ void listenSocket(int socketEcoute) {
     printf("Socket placée en écoute passive ...\n");
 }
 
-void interpretationMsg(CASE *matrice, int l, int c, char messageEnvoi[LG_MESSAGE],char messageRecu[LG_MESSAGE], int lus){
+char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]){
 
-        memset(messageEnvoi, 0x00, LG_MESSAGE * sizeof(char));
         char prMot[LG_MESSAGE]; //le premier mot de la commande
-        printf("message recu: %s\n", messageRecu);
         selectMot(messageRecu, 1, " ", prMot);
 
         if(strcmp(prMot,"/setPixel\0")==0){
@@ -389,37 +403,35 @@ void interpretationMsg(CASE *matrice, int l, int c, char messageEnvoi[LG_MESSAGE
             selectMot(place, 2, "x",y);
             int posC = atoi(x);
             int posL = atoi(y);
-            if (posC>=c || posC<0 || posL>=l || posL<0)
-            {
-                strcpy(messageEnvoi,"Out of Bounds");
-                // return 11;//Out of Bounds
-            }
-            
 
             selectMot(messageRecu, 3, " ", couleur);
             if (strlen(couleur)==9)
             {
-                setPixel(matrice, posL, posC, l, c, couleur);
-                strcpy(messageEnvoi,getMatrice(matrice, l*c));
+                return setPixel(matrice, posL, posC, l, c, couleur);
             }else
             {
-                // return 10;//Bad Command
-                strcpy(messageEnvoi,"Bad Command");
+                return "12\0";//Bad Command
             }
 
         } else if(strcmp(prMot,"/getSize\0")==0){
-            strcpy(messageEnvoi,getSize(l, c));
+            return getSize(l,c);
+
         } else if(strcmp(prMot,"/getMatrice\0")==0){
-            strcpy(messageEnvoi,getMatrice(matrice, l*c));
+            char data[LG_MESSAGE];
+            strcpy(data,getMatrice(matrice, l*c));
+            return base64_encode(data ,strlen(data));
+
         } else if(strcmp(prMot,"/getLimits\0")==0){
-            strcpy(messageEnvoi,getLimits(l, c, 5));
+            return getLimits(l, c, 5);
+
         } else if(strcmp(prMot,"/getVersion\0")==0){
-            strcpy(messageEnvoi,getVersion());
+            return getVersion();
+
         } else if(strcmp(prMot,"/getWaitTime\0")==0){
-            strcpy(messageEnvoi,getWaitTime(60));
+            return getWaitTime(60);
+            
         } else{
-            printf("Message reçu : %s (%d octets)\n\n", messageRecu, lus);
-            strcpy(messageEnvoi,"Bad Command");
+            return "10\0";
         }
 }
 //---------------------------------------//
