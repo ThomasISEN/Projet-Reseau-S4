@@ -6,6 +6,7 @@
 #include <string.h> /* pour memset */
 #include <netinet/in.h> /* pour struct sockaddr_in */
 #include <arpa/inet.h> /* pour htons et inet_aton */
+#include <ncurses.h>
 
 #define LG_MESSAGE 256
 #define PORT IPPORT_USERRESERVED // = 5000
@@ -13,9 +14,11 @@
 void mainClient(int socketEcoute);
 int createSocket();
 void bindSocket(int socketEcoute, int port, char* ip);
-void interpretationMsg(char messageRecu[LG_MESSAGE]);
-int espace(char messageRecu[LG_MESSAGE]);
-void affichageMatrice(char messageRecu[LG_MESSAGE]);
+void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c);
+//int espace(char messageRecu[LG_MESSAGE]);
+void interpretationMatrice(char messageRecu[LG_MESSAGE], int l, int c);
+void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot);
+//void afficheMatrice();
 
 int main(int argc, char *argv[]){
 
@@ -68,6 +71,20 @@ void mainClient(int socketEcoute){
 	memset(messageEnvoi, 0x00, LG_MESSAGE*sizeof(char));
 	memset(messageRecu, 0x00, LG_MESSAGE*sizeof(char));
 
+	char* limit="/getSize";
+	strcpy(messageEnvoi, limit);
+	ecrits = write(socketEcoute, messageEnvoi, strlen(messageEnvoi));
+	lus = read(socketEcoute, messageRecu, LG_MESSAGE*sizeof(char));
+
+	char strL[LG_MESSAGE];
+	char strC[LG_MESSAGE];
+	selectMot(messageRecu, 1, strC);
+	selectMot(messageRecu, 2, strL);
+	int l=atoi(strL);
+	int c=atoi(strC);
+	//printf("taille:%dx%d\n", l,c);
+
+
 	// Envoie un message au serveur
 	char phrase[LG_MESSAGE*sizeof(char)];
 	while (phrase!="\n")
@@ -86,7 +103,7 @@ void mainClient(int socketEcoute){
 				close(socketEcoute);
 				exit(-1);
 			default:/* envoi de n octets */
-
+			printf(" ");
 		}
 
 		/* Reception des données du serveur */
@@ -103,8 +120,9 @@ void mainClient(int socketEcoute){
 				exit(-1);
 			default:/* réception de n octets */
 				messageRecu[lus]='\0';
-				interpretationMsg(messageRecu);
 				//printf("Message reçu du serveur : %s (%d octets)\n\n", messageRecu, lus);
+				interpretationMsg(messageRecu, messageEnvoi, l, c);
+				
 		}
 	}
 	close(socketEcoute);
@@ -137,7 +155,7 @@ void bindSocket(int socketEcoute, int port, char* ip){
 
 }
 
-void interpretationMsg(char messageRecu[LG_MESSAGE]){
+void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c){
 	if(strcmp(messageRecu,"00\0")==0){
         printf("OK\n");
 	} else if(strcmp(messageRecu,"10\0")==0){
@@ -149,30 +167,38 @@ void interpretationMsg(char messageRecu[LG_MESSAGE]){
 	} else if(strcmp(messageRecu,"20\0")==0){
 		printf("Out of quota\n");
 	} else{
+		//printf("le message envoyé:'%s'\n",messageEnvoi);
 
-		if(espace(messageRecu)==0){
-			printf("%s\n", messageRecu);
+		if (strcmp(messageEnvoi,"/getSize\n")==0){
+			printf("la taille de la matrice est de: %s\n", messageRecu);
+		}else if (strcmp(messageEnvoi,"/getLimits\n")==0){
+			printf("%s pixel par minutes\n", messageRecu);
+		}else if (strcmp(messageEnvoi,"/getVersion\n")==0){
+			printf("Version %s\n", messageRecu);
+		}else if (strcmp(messageEnvoi,"/getWaitTime\n")==0){
+			printf("%s secondes à attendre avant de pouvoir envoyer un nouveau pixel\n", messageRecu);
 		}else{
-			affichageMatrice(messageRecu);
+			//printf("AFFICHAGE MATRICE\n");
+			interpretationMatrice(messageRecu, l, c);
 		}
 		
 	}
 }
 
-int espace(char messageRecu[LG_MESSAGE]){
-	int i=0;
-	while (messageRecu[i]!='\0')
-	{
-		if (messageRecu[i]==' ')
-		{
-			return 0;
-		}
-		i++;
-	}
-	return 1;
-}
+// int espace(char messageRecu[LG_MESSAGE]){
+// 	int i=0;
+// 	while (messageRecu[i]!='\0')
+// 	{
+// 		if (messageRecu[i]==' ')
+// 		{
+// 			return 0;
+// 		}
+// 		i++;
+// 	}
+// 	return 1;
+// }
 
-void affichageMatrice(char messageRecu[LG_MESSAGE]){
+void interpretationMatrice(char messageRecu[LG_MESSAGE], int l, int c){
 	static const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     size_t message_len = strlen(messageRecu);
     size_t padding = 0;
@@ -213,6 +239,90 @@ void affichageMatrice(char messageRecu[LG_MESSAGE]){
 
 	//AFFICHAGE
 	printf("------Matrice-----\n");
-    printf("%s\n\n",messageEnvoi);
+    //printf("%s\n\n",messageEnvoi);
+	//printf("l:%d c:%d", l, c);
+	int matrice[l][c];
+	int k=0;
+	for (int i = 0; i < l; i++)
+	{
+		for (int j = 0; j < c*3; j++)
+		{
+			char nombre[3];
+			nombre[0]=messageEnvoi[(i*c*3)+k];
+			nombre[1]=messageEnvoi[((i*c*3)+k)+1];
+			nombre[2]=messageEnvoi[((i*c*3)+k)+2];
+			matrice[i][j]=atoi(nombre);
+			printf("%d",matrice[i][j]);//Affichage a améliorer et stockage aussi si besoin
+			k+=3;
+			
+		}
+		printf("\n");
+		k=0;
+		
+	}
+	//afficheMatrice();
+	
+	
 	free(messageEnvoi);
 }
+
+void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot){
+	int i=0, j=0, cpt=1;
+	//printf("message recu dans le selectMot: %s", phrase);
+	while (phrase[i]!='\n'  && phrase[i]!='\0')
+	{
+		if(phrase[i]=='x'){
+			cpt++;
+			i++;
+		}
+		if (cpt==nombre)//on regarde si on est au mot que l'on veut
+		{
+			//printf("le chiffre: %c",phrase[i]);
+			mot[j]=phrase[i];
+			j++;
+			i++;
+		}else{
+			i++;
+		}
+	}
+	mot[j]='\0';
+}
+
+// void afficheMatrice(){
+// 	// WINDOW *haut, *bas;
+// 	WINDOW *boite;
+// 	char *msg= "____\n|_\n|___";
+//     int taille= strlen(msg);
+    
+//     initscr();
+// 	while(1) {
+// 		clear();
+//         // printw("Le terminal actuel comporte %d lignes et %d colonnes\n", LINES, COLS);
+//         // refresh();  // Rafraîchit la fenêtre par défaut (stdscr) afin d'afficher le message
+// 		clear();    // Efface la fenêtre (donc l'ancien message)
+//         mvprintw(LINES/2, (COLS / 2) - (taille / 2), msg);
+//         refresh();
+// 		// haut= subwin(stdscr, LINES / 2, COLS, 0, 0);        // Créé une fenêtre de 'LINES / 2' lignes et de COLS colonnes en 0, 0
+// 		// bas= subwin(stdscr, LINES / 2, COLS, LINES / 2, 0); // Créé la même fenêtre que ci-dessus sauf que les coordonnées changent
+		
+// 		// box(haut, ACS_VLINE, ACS_HLINE);
+// 		// box(bas, ACS_VLINE, ACS_HLINE);
+		
+// 		// mvwprintw(haut, 1, 1, "Ceci est la fenetre du haut");
+// 		// mvwprintw(bas, 1, 1, "Ceci est la fenetre du bas");
+		
+// 		// wrefresh(haut);
+//    		// wrefresh(bas);
+
+//         if(getch() != 410)  // 410 est le code de la touche générée lorsqu'on redimensionne le terminal
+//             break;
+//     }
+    
+    
+//     //getch();
+//     endwin();
+    
+//     // free(haut);
+//     // free(bas);
+// 	free(boite);
+// }
