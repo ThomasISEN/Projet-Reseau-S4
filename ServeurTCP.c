@@ -206,7 +206,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
                 } else {
                     // Affichage du message reçu
                     messageRecu[lus]='\0';
-                    printf("Message reçu de %s:%d : %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);                    
+                    printf("Message reçu de %s:%d : '%s'\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);                    
                     strcpy(messageEnvoi,interpretationMsg(matrice, l, c, messageRecu, liste_client, i));
                     // Mise à jour de l'état du client
                     liste_client = actualiseClient(liste_client, fds, maxClients);
@@ -229,8 +229,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
                         liste_client=supprimeClient(liste_client, i);
                         exit(0);
                     default:
-                    printf(" ");
-                        //printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
+                    printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
                 }
             }
 
@@ -450,7 +449,7 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
 
         } else if(strcmp(prMot,"/getVersion\0")==0){
             return getVersion();
-
+    
         } else if(strcmp(prMot,"/getWaitTime\0")==0){
             return getWaitTime(60);
             

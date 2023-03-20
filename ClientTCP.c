@@ -11,14 +11,16 @@
 #define LG_MESSAGE 256
 #define PORT IPPORT_USERRESERVED // = 5000
 
-void mainClient(int socketEcoute);
+void mainClient(int socketEcoute, WINDOW *boite);
 int createSocket();
 void bindSocket(int socketEcoute, int port, char* ip);
-void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c);
+void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, WINDOW *boite);
 //int espace(char messageRecu[LG_MESSAGE]);
 void interpretationMatrice(char messageRecu[LG_MESSAGE], int l, int c);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot);
 //void afficheMatrice();
+char *affichage(WINDOW *boite);
+void affichageEntree(int socketEcoute);
 
 int main(int argc, char *argv[]){
 
@@ -56,12 +58,13 @@ int main(int argc, char *argv[]){
 
 
 	//boucle principale
-	mainClient(socketEcoute);
+	affichageEntree(socketEcoute);
+	//mainClient(socketEcoute);
 	
 	return 0;
 }
 
-void mainClient(int socketEcoute){
+void mainClient(int socketEcoute, WINDOW *boite){
 
 	int ecrits, lus;/* nb d’octets ecrits et lus */
 	char messageEnvoi[LG_MESSAGE];/* le message de la couche Application ! */
@@ -89,8 +92,8 @@ void mainClient(int socketEcoute){
 	char phrase[LG_MESSAGE*sizeof(char)];
 	while (phrase!="\n")
 	{
-		fgets(phrase, sizeof(phrase), stdin);
-		strcpy(messageEnvoi, phrase);
+		//fgets(phrase, sizeof(phrase), stdin);
+		strcpy(messageEnvoi, affichage(boite));
 		ecrits = write(socketEcoute, messageEnvoi, strlen(messageEnvoi));// message à TAILLE variable
 		switch(ecrits)
 		{
@@ -107,7 +110,7 @@ void mainClient(int socketEcoute){
 		}
 
 		/* Reception des données du serveur */
-		lus = read(socketEcoute, messageRecu, LG_MESSAGE*sizeof(char));/* attend un messagede TAILLE fixe */
+		lus = read(socketEcoute, messageRecu, LG_MESSAGE*sizeof(char));/* attend un message de TAILLE fixe */
 		switch(lus)
 		{
 			case-1 :/* une erreur ! */
@@ -121,11 +124,13 @@ void mainClient(int socketEcoute){
 			default:/* réception de n octets */
 				messageRecu[lus]='\0';
 				//printf("Message reçu du serveur : %s (%d octets)\n\n", messageRecu, lus);
-				interpretationMsg(messageRecu, messageEnvoi, l, c);
+				interpretationMsg(messageRecu, messageEnvoi, l, c, boite);
 				
 		}
 	}
 	close(socketEcoute);
+	endwin();
+	free(boite);
 }
 
 int createSocket() {
@@ -155,28 +160,32 @@ void bindSocket(int socketEcoute, int port, char* ip){
 
 }
 
-void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c){
+void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, WINDOW *boite){
 	if(strcmp(messageRecu,"00\0")==0){
-        printf("OK\n");
+        mvprintw(LINES - 1, 0, "OK");
 	} else if(strcmp(messageRecu,"10\0")==0){
-		printf("Bad command\n");
+		mvprintw(LINES - 1, 0, "Bad Command");
 	} else if(strcmp(messageRecu,"11\0")==0){
-		printf("Pixel out of band\n");
+		mvprintw(LINES - 1, 0, "Pixel out of band");
 	} else if(strcmp(messageRecu,"12\0")==0){
-		printf("Bad color\n");
+		mvprintw(LINES - 1, 0, "Bad color");
 	} else if(strcmp(messageRecu,"20\0")==0){
-		printf("Out of quota\n");
+		mvprintw(LINES - 1, 0, "Out of quota");
 	} else{
 		//printf("le message envoyé:'%s'\n",messageEnvoi);
 
-		if (strcmp(messageEnvoi,"/getSize\n")==0){
-			printf("la taille de la matrice est de: %s\n", messageRecu);
-		}else if (strcmp(messageEnvoi,"/getLimits\n")==0){
-			printf("%s pixel par minutes\n", messageRecu);
-		}else if (strcmp(messageEnvoi,"/getVersion\n")==0){
-			printf("Version %s\n", messageRecu);
-		}else if (strcmp(messageEnvoi,"/getWaitTime\n")==0){
-			printf("%s secondes à attendre avant de pouvoir envoyer un nouveau pixel\n", messageRecu);
+		if (strcmp(messageEnvoi,"/getSize\0")==0){
+			mvprintw(LINES - 1, 0, "la taille de la matrice est de: %s", messageRecu);
+			refresh();
+		}else if (strcmp(messageEnvoi,"/getLimits\0")==0){
+			mvprintw(LINES - 1, 0, "%s pixel par minutes", messageRecu);
+			refresh();
+		}else if (strcmp(messageEnvoi,"/getVersion\0")==0){
+			mvprintw(LINES - 1, 0, "Version %s", messageRecu);
+			refresh();
+		}else if (strcmp(messageEnvoi,"/getWaitTime\0")==0){
+			mvprintw(LINES - 1, 0, "%s secondes à attendre avant de pouvoir envoyer un nouveau pixel", messageRecu);
+			refresh();
 		}else{
 			//printf("AFFICHAGE MATRICE\n");
 			interpretationMatrice(messageRecu, l, c);
@@ -288,41 +297,111 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot){
 	mot[j]='\0';
 }
 
-// void afficheMatrice(){
-// 	// WINDOW *haut, *bas;
-// 	WINDOW *boite;
-// 	char *msg= "____\n|_\n|___";
-//     int taille= strlen(msg);
-    
-//     initscr();
-// 	while(1) {
-// 		clear();
-//         // printw("Le terminal actuel comporte %d lignes et %d colonnes\n", LINES, COLS);
-//         // refresh();  // Rafraîchit la fenêtre par défaut (stdscr) afin d'afficher le message
-// 		clear();    // Efface la fenêtre (donc l'ancien message)
-//         mvprintw(LINES/2, (COLS / 2) - (taille / 2), msg);
-//         refresh();
-// 		// haut= subwin(stdscr, LINES / 2, COLS, 0, 0);        // Créé une fenêtre de 'LINES / 2' lignes et de COLS colonnes en 0, 0
-// 		// bas= subwin(stdscr, LINES / 2, COLS, LINES / 2, 0); // Créé la même fenêtre que ci-dessus sauf que les coordonnées changent
-		
-// 		// box(haut, ACS_VLINE, ACS_HLINE);
-// 		// box(bas, ACS_VLINE, ACS_HLINE);
-		
-// 		// mvwprintw(haut, 1, 1, "Ceci est la fenetre du haut");
-// 		// mvwprintw(bas, 1, 1, "Ceci est la fenetre du bas");
-		
-// 		// wrefresh(haut);
-//    		// wrefresh(bas);
+void affichageEntree(int socketEcoute){
+	WINDOW *boite;
+	initscr();
+	char *msgA[] = {
+		"########  #### ##     ## ######## ##       ##      ##    ###    ########  ",
+		"##     ##  ##   ##   ##  ##       ##       ##  ##  ##   ## ##   ##     ## ",
+		"########   ##     ###    ######   ##       ##  ##  ## ##     ## ########  ",
+		"##         ##    ## ##   ##       ##       ##  ##  ## ######### ##   ##   ",
+		"##         ##   ##   ##  ##       ##       ##  ##  ## ##     ## ##    ##  ",
+		"##        #### ##     ## ######## ########  ###  ###  ##     ## ##     ## ",
+		"appuyer sur 1 pour aller au menu"
+	};
+	int taille= strlen(msgA[1]);
 
-//         if(getch() != 410)  // 410 est le code de la touche générée lorsqu'on redimensionne le terminal
-//             break;
-//     }
-    
-    
-//     //getch();
-//     endwin();
-    
-//     // free(haut);
-//     // free(bas);
-// 	free(boite);
-// }
+	clear();    // Efface la fenêtre (donc l'ancien message)
+	mvprintw((LINES/2)-2, (COLS / 2) - (taille / 2), msgA[0]);
+	mvprintw((LINES/2)-1, (COLS / 2) - (taille / 2), msgA[1]);
+	mvprintw((LINES/2), (COLS / 2) - (taille / 2), msgA[2]);
+	mvprintw((LINES/2)+1, (COLS / 2) - (taille / 2), msgA[3]);
+	mvprintw((LINES/2)+2, (COLS / 2) - (taille / 2), msgA[4]);
+	mvprintw((LINES/2)+3, (COLS / 2) - (taille / 2), msgA[5]);
+	mvprintw((LINES)-2, (COLS/2) - (strlen(msgA[6])/2), msgA[6]);
+	refresh();
+
+	noecho();
+    int key = getch(); // attendre l'appui d'une touche
+	while (key != '1' && key != '&'){
+		key = getch();
+	}
+	clear();
+	mainClient(socketEcoute, boite);
+}
+
+char *affichage(WINDOW *boite){
+	
+
+	char *msgM[] = {
+		"1. Placer un pixel",
+		"2. Taille de la matrice",
+		"3. Limite de pixel par minute",
+		"4. Version du jeu",
+		"5. Temps d'attente avant recharge",
+		"0. Quitter",
+		"Appuyer sur le chiffre correspondant pour sélectionner une option"
+	};
+	// Afficher les options du menu
+	mvprintw(LINES/2 - 3, (COLS/2) - (strlen(msgM[0])/2), msgM[0]);
+	mvprintw(LINES/2 - 2, (COLS/2) - (strlen(msgM[1])/2), msgM[1]);
+	mvprintw(LINES/2 - 1, (COLS/2) - (strlen(msgM[2])/2), msgM[2]);
+	mvprintw(LINES/2, (COLS/2) - (strlen(msgM[3])/2), msgM[3]);
+	mvprintw(LINES/2 + 1, (COLS/2) - (strlen(msgM[4])/2), msgM[4]);
+	mvprintw(LINES/2 + 2, (COLS/2) - (strlen(msgM[5])/2), msgM[5]);
+
+	// Afficher le message pour sélectionner une option
+	mvprintw((LINES)-2, (COLS/2) - (strlen(msgM[6])/2), msgM[6]);
+	refresh(); // rafraîchir l'affichage
+
+	move(COLS - 1, 0);
+	int key=getch();
+	while (key != 'a' && key != 'z' && key != 'e' && key != 'r' && key != 't' && key != 'y')
+	{
+		key=getch();
+	}
+	if (key == 'a')
+	{
+		/* SetPixel */
+		echo();
+		clear();
+		char phrase[50];
+		getnstr(phrase, 100);
+		char *messageFinal = malloc(100 * sizeof(char)); // allocation de la mémoire
+		sprintf(messageFinal, "/setPixel %s", phrase);
+		clear();
+		noecho();
+		return messageFinal;
+
+	}else if (key == 'z')
+	{
+		/* getSize */
+		clear();
+		return "/getSize\0";
+	}else if (key == 'e')
+	{
+		/* getLimits */
+		clear();
+		return "/getLimits\0";
+	}else if (key == 'r')
+	{
+		/* getVersion */
+		clear();
+		return "/getVersion\0";
+	}else if (key == 't')
+	{
+		/* getWaitTime */
+		clear();
+		return "/getWaitTime\0";
+	}else if (key == 'y')
+	{
+		endwin();
+		free(boite);
+		return NULL; 
+	}
+	
+}
+
+void affichageRecu(char messageRecu[LG_MESSAGE]){
+
+}
