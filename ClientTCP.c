@@ -214,8 +214,10 @@ char* base64_encode(const char* rgb) {
     size_t input_length = strlen(rgb);
     size_t output_length = 4 * ((input_length + 2) / 3);
     char* encoded_data = malloc(output_length + 1);
-    if (encoded_data == NULL) return NULL;
-
+    if (encoded_data == NULL) return "12\0";
+	printw("oui1");
+	if (strlen(rgb)%9 != 0) return "12\0";
+	printw("oui2");
     size_t i, j;
     uint32_t octet_a, octet_b, octet_c, triple;
 
@@ -427,7 +429,7 @@ char *affichage(WINDOW *boite){
 		char *messageFinal = malloc(100 * sizeof(char)); // allocation de la mémoire
 		sprintf(messageFinal, "/setPixel %s %s", position, couleur);
 		clear();
-		mvprintw(1, 0, "le msg: %s", messageFinal);
+		printw("le msg: %s", messageFinal);
 		noecho();
 		return messageFinal;
 

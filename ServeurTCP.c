@@ -11,7 +11,7 @@
 #include <time.h>
 
 #define LG_MESSAGE 1024
-#define MAX_PIXEL 2
+#define MAX_PIXEL 5
 
 typedef struct CASE{
 	char couleur[10]; //couleur format RRRGGGBBB
@@ -37,7 +37,7 @@ char *getMatrice(CASE *matrice, int ligne,int colone);
 char *getSize(int l, int c);
 char *getLimits(int l, int c,int maxTempsAttente);
 char *getVersion();
-char *getWaitTime(int timer);
+char *getWaitTime(CLIENT *liste, int i);
 void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot);
 void afficheMatrice(CASE *matrice);
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 
 	// Vérifie que la commande a la forme attendue
     if (argc != 7) {
-        fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l MAX_CLIENTS]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <-p PORT> <-s LxH> <-l MAX_CLIENTS>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
                 maxClients = atoi(optarg);
                 break;
             default:
-                fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l MAX_CLIENTS]\n", argv[0]);
+                fprintf(stderr, "Usage: %s <-p PORT> <-s LxH> <-l MAX_CLIENTS>\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
@@ -325,8 +325,8 @@ char* base64_decode(const char* messageRecu) {
     }
 
     // Conversion des valeurs RGB en chaîne de caractères
-    char* result = malloc(sizeof(char));
-    int taille=1;
+    int taille=3;
+    char* result = malloc(taille*sizeof(char));
     printf("otput lenght: %ld\n", output_length);
     for (int i = 0; i < output_length; i++) {
         char nombre[4];
@@ -371,8 +371,17 @@ void initMatrice(CASE *matrice, int taille){
 
 char *setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val){
 	if (posL >= 0 && posL < l && posC >= 0 && posC < c) {
+        for (int i = 0; i < 9;)
+        {
+            char nombre[3]={val[i],val[i+1],val[i+2]};
+            if (atoi(nombre)>255 || atoi(nombre)<0)
+            {
+                return "12\0";//Bad Color
+            }
+            i+=3;
+        }
         strcpy(matrice[(posL*c)+posC].couleur, val); //(posL*c)+posC valeur sur un tableau 1D d'une position en tableau 2D
-        printf("la case : '%s'\n",matrice[(posL*c)+posC].couleur );
+        printf("la case : '%s'\n",matrice[(posL*c)+posC].couleur);
         return "00\0"; //OK
     }else
     {
@@ -431,14 +440,25 @@ char *getVersion(){
     return resultat;
 }
 
-char *getWaitTime(int timer){//A identifier par rapport à l'IP client
+char *getWaitTime(CLIENT *liste, int i){
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
-    sprintf(resultat, "%d", timer);
+    
+    CLIENT *curr = liste;
+    while (curr != NULL && curr->id != i) {
+        curr = curr->suiv;
+    }
+    if (time(0)-curr->timer>=60 || curr->pixel>0)
+    {
+        sprintf(resultat, "%d", 0);
+    }else
+    {
+        sprintf(resultat, "%ld", 60-(time(0)-curr->timer));
+    }
     return resultat;
 }
 
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot){
-	int i=0, j=0, cpt=1;
+	int i=0, j=0, cpt=1;    
 
 	while (phrase[i]!='\n'  && phrase[i]!='\0')
 	{
@@ -522,36 +542,44 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
             int posL = atoi(y);
 
             selectMot(messageRecu, 3, " ", couleur);
+            if(strlen(couleur)>5 || strcmp(couleur,"12\0")==0){
+                return "12\0";// Bad color 
+            }
             strcpy(couleur, base64_decode(couleur));
             if (strlen(couleur)==9)
             {
-                
-                printf("la couleur: '%s'\n", couleur);
                 CLIENT *curr = liste_client;
-                //printf("l'ID à déduire: %d\n", i);
-                
                 while (curr != NULL && curr->id != i) {
                     curr = curr->suiv;
                 }
-                if (curr->pixel>0)
+
+                if (curr->pixel>0 || time(0)-curr->timer>=60)
                 {
-                    liste_client=deduirePixel(liste_client, i);
-                }else if (time(0)-curr->timer>=60)
-                {
-                    curr->timer=time(0);
-                    curr->pixel=MAX_PIXEL;
-                    liste_client=deduirePixel(liste_client, i);
-                    //afficher_id_clients(liste_client);
-                }
-                else if(time(0)-curr->timer<60)
+                    if (strcmp(setPixel(matrice, posL, posC, l, c, couleur),"00\0")==0)
+                    {
+                        if (curr->pixel>0)
+                        {
+                            liste_client=deduirePixel(liste_client, i);
+                            curr->timer=time(0);
+                        }else{
+                            curr->timer=time(0);
+                            curr->pixel=MAX_PIXEL;
+                        }
+                        afficher_id_clients(liste_client);
+                        return "00\0";
+                    } else{
+                        return "11\0";
+                    }
+                    
+                }else
                 {
                     return "20\0"; //Out of quota
-                }
-                //liste_client=deduirePixel(liste_client, i);                
-                return setPixel(matrice, posL, posC, l, c, couleur);
+                }              
+                
             }else
             {
-                return "12\0";//Bad Command
+                printf("color\n");
+                return "12\0";// Bad color
             }
 
         } else if(strcmp(prMot,"/getSize\0")==0){
@@ -572,10 +600,10 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
             return getVersion();
 
         } else if(strcmp(prMot,"/getWaitTime\0")==0){
-            return getWaitTime(60);
+            return getWaitTime(liste_client, i);
             
         } else{
-            return "10\0";
+            return "10\0";//Bad Command
         }
 }
 //---------------------------------------//
