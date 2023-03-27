@@ -163,16 +163,18 @@ void bindSocket(int socketEcoute, int port, char* ip){
 }
 
 void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, WINDOW *boite){
-	if(strcmp(messageRecu,"00\0")==0){
-        mvprintw(LINES - 1, 0, "OK");
-	} else if(strcmp(messageRecu,"10\0")==0){
-		mvprintw(LINES - 1, 0, "Bad Command");
-	} else if(strcmp(messageRecu,"11\0")==0){
-		mvprintw(LINES - 1, 0, "Pixel out of band");
-	} else if(strcmp(messageRecu,"12\0")==0){
-		mvprintw(LINES - 1, 0, "Bad color");
-	} else if(strcmp(messageRecu,"20\0")==0){
-		mvprintw(LINES - 1, 0, "Out of quota");
+	if(strcmp(messageRecu,"00 OK\0")==0){
+        mvprintw(LINES - 1, 0, "Validé");
+	} else if(strcmp(messageRecu,"10 Bad Command\0")==0){
+		mvprintw(LINES - 1, 0, "Mauvaise commande");
+	} else if(strcmp(messageRecu,"11 Out Of Bound\0")==0){
+		mvprintw(LINES - 1, 0, "Pixel en dehors de la matrice");
+	} else if(strcmp(messageRecu,"12 Bad Color\0")==0){
+		mvprintw(LINES - 1, 0, "Mauvaise Couleur");
+	} else if(strcmp(messageRecu,"12 Bad Color\0")==0){
+		mvprintw(LINES - 1, 0, "Vous n'avez plus de pixel, veuillez attendre");
+	}else if(strcmp(messageRecu,"99 Unknown Command\0")==0){
+		mvprintw(LINES - 1, 0, "Commande Inconue");
 	} else{
 		//printf("le message envoyé:'%s'\n",messageEnvoi);
 
@@ -214,10 +216,8 @@ char* base64_encode(const char* rgb) {
     size_t input_length = strlen(rgb);
     size_t output_length = 4 * ((input_length + 2) / 3);
     char* encoded_data = malloc(output_length + 1);
-    if (encoded_data == NULL) return "12\0";
-	printw("oui1");
-	if (strlen(rgb)%9 != 0) return "12\0";
-	printw("oui2");
+    if (encoded_data == NULL) return "12 Bad Color\0";
+	if (strlen(rgb)%9 != 0) return "12 Bad Color\0";
     size_t i, j;
     uint32_t octet_a, octet_b, octet_c, triple;
 

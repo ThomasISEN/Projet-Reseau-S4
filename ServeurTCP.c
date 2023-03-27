@@ -376,17 +376,17 @@ char *setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val){
             char nombre[3]={val[i],val[i+1],val[i+2]};
             if (atoi(nombre)>255 || atoi(nombre)<0)
             {
-                return "12\0";//Bad Color
+                return "12 Bad Color\0";//Bad Color
             }
             i+=3;
         }
         strcpy(matrice[(posL*c)+posC].couleur, val); //(posL*c)+posC valeur sur un tableau 1D d'une position en tableau 2D
         printf("la case : '%s'\n",matrice[(posL*c)+posC].couleur);
-        return "00\0"; //OK
+        return "00 OK\0"; //OK
     }else
     {
         printf("Out of Bounds\n");
-        return "11\0";//Out of Bounds
+        return "11 Out Of Bound\0";//Out of Bounds
     }
     
 }
@@ -458,7 +458,7 @@ char *getWaitTime(CLIENT *liste, int i){
 }
 
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot){
-	int i=0, j=0, cpt=1;    
+	int i=0, j=0, cpt=1;  
 
 	while (phrase[i]!='\n'  && phrase[i]!='\0')
 	{
@@ -475,15 +475,6 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur
 		}
 	}
 	mot[j]='\0';
-
-	//ajout pour gérer les erreurs setPixel
-	if (cpt>3)//trop de mot pour la commande SetPixel
-	{
-		mot[0] = '\0'; // chaîne vide
-	}else if (*separateur=='x' && cpt!=2)//pas assez ou trop d'argument à la commande
-	{
-		mot[0] = '\0'; // chaîne vide
-	}
 }
 //---------------------------------------//
 
@@ -543,7 +534,7 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
 
             selectMot(messageRecu, 3, " ", couleur);
             if(strlen(couleur)>5 || strcmp(couleur,"12\0")==0){
-                return "12\0";// Bad color 
+                return "12 Bad Color\0";// Bad color
             }
             strcpy(couleur, base64_decode(couleur));
             if (strlen(couleur)==9)
@@ -555,7 +546,7 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
 
                 if (curr->pixel>0 || time(0)-curr->timer>=60)
                 {
-                    if (strcmp(setPixel(matrice, posL, posC, l, c, couleur),"00\0")==0)
+                    if (strcmp(setPixel(matrice, posL, posC, l, c, couleur),"00 OK\0")==0)
                     {
                         if (curr->pixel>0)
                         {
@@ -566,20 +557,19 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
                             curr->pixel=MAX_PIXEL;
                         }
                         afficher_id_clients(liste_client);
-                        return "00\0";
+                        return "00 OK\0";
                     } else{
-                        return "11\0";
+                        return "11 Out Of Bound\0";
                     }
                     
                 }else
                 {
-                    return "20\0"; //Out of quota
+                    return "20 Out Of Quota\0"; //Out of quota
                 }              
                 
             }else
             {
-                printf("color\n");
-                return "12\0";// Bad color
+                return "12 Bad Color\0";// Bad color
             }
 
         } else if(strcmp(prMot,"/getSize\0")==0){
@@ -603,7 +593,7 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
             return getWaitTime(liste_client, i);
             
         } else{
-            return "10\0";//Bad Command
+            return "99 Unknown Command\0";
         }
 }
 //---------------------------------------//
