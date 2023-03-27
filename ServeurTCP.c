@@ -8,8 +8,10 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <poll.h>
+#include <time.h>
 
 #define LG_MESSAGE 1024
+#define MAX_PIXEL 2
 
 typedef struct CASE{
 	char couleur[10]; //couleur format RRRGGGBBB
@@ -20,7 +22,7 @@ typedef struct CLIENT CLIENT;
 
 struct CLIENT{
 	int id;
-    int timer;
+    clock_t timer;
     int pixel;
 	int client_fds;
 	struct pollfd fds;
@@ -49,7 +51,8 @@ CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers);
 CLIENT* supprimeClient(CLIENT *liste, int idSup);
 CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients);
 CLIENT *deduirePixel(CLIENT *liste, int i);
-char* base64_encode(const unsigned char* input, size_t input_len);
+char* base64_encode(const char* rgb);
+char* base64_decode(const char* messageRecu);
 
 
 
@@ -183,6 +186,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 					client->client_fds = new_fd;
 					client->fds.fd = new_fd;
                     client->id=i;
+                    client->timer=time(0);
 					liste_client=ajouterClient(liste_client, client);
 					printf("Nouvelle connexion : %s:%d id:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client->id);
 				}
@@ -244,21 +248,34 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 
 
 //-------------FONCTION DE JEU-------------//
-char* base64_encode(const unsigned char* data, size_t input_length) {
-    //printf("base 64 encoding... !\n");
+char* base64_encode(const char* rgb) {
     static const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    size_t input_length = strlen(rgb);
     size_t output_length = 4 * ((input_length + 2) / 3);
-    char *encoded_data = malloc(output_length + 1);
+    char* encoded_data = malloc(output_length + 1);
     if (encoded_data == NULL) return NULL;
 
     size_t i, j;
     uint32_t octet_a, octet_b, octet_c, triple;
 
-    for (i = 0, j = 0; i < input_length;) {
-        octet_a = data[i++];
-        octet_b = (i < input_length) ? data[i++] : 0;
-        octet_c = (i < input_length) ? data[i++] : 0;
-        triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+    char*nombre = malloc(3*sizeof(char));
+    int tableauRGB[input_length/3];
+    int cpt=0;
+
+    for (i = 0; i < input_length;) {
+        nombre[0] = rgb[i++];
+        nombre[1] = rgb[i++];
+        nombre[2] = rgb[i++];
+
+        tableauRGB[cpt]= atoi(nombre);
+        cpt++;
+    }
+
+    for (i = 0, j = 0; i < input_length/3;) {
+        octet_a = (uint8_t)tableauRGB[i++];
+        octet_b = (uint8_t)tableauRGB[i++];
+        octet_c = (uint8_t)tableauRGB[i++];
+        triple = (octet_a << 16) + (octet_b << 8) + octet_c;
 
         encoded_data[j++] = base64_table[(triple >> 3 * 6) & 0x3F];
         encoded_data[j++] = base64_table[(triple >> 2 * 6) & 0x3F];
@@ -272,10 +289,78 @@ char* base64_encode(const unsigned char* data, size_t input_length) {
     }
 
     encoded_data[j] = '\0';
-    printf("base 64 encoded !\n");
-
     return encoded_data;
 }
+
+char* base64_decode(const char* messageRecu) {
+    static const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    size_t input_length = strlen(messageRecu);
+
+    printf("%s\n", messageRecu);
+    size_t output_length = input_length / 4 * 3;
+
+    unsigned char* messageDecode = malloc(output_length + 1);
+    size_t i, j;
+    uint32_t sextet_a, sextet_b, sextet_c, sextet_d, triple;
+
+    int* tableauRGB = malloc(output_length * sizeof(int));
+    int cpt = 0;
+
+    for (i = 0, j = 0; i < input_length;) {
+        sextet_a = (messageRecu[i] == '=') ? 0 : strchr(base64_chars, messageRecu[i]) - base64_chars;
+        sextet_b = (messageRecu[i+1] == '=') ? 0 : strchr(base64_chars, messageRecu[i+1]) - base64_chars;
+        sextet_c = (messageRecu[i+2] == '=') ? 0 : strchr(base64_chars, messageRecu[i+2]) - base64_chars;
+        sextet_d = (messageRecu[i+3] == '=') ? 0 : strchr(base64_chars, messageRecu[i+3]) - base64_chars;
+
+        triple = (sextet_a << 3 * 6)
+               + (sextet_b << 2 * 6)
+               + (sextet_c << 1 * 6)
+               + (sextet_d << 0 * 6);
+
+        tableauRGB[cpt++] = (triple >> 2 * 8) & 0xFF;
+        tableauRGB[cpt++] = (triple >> 1 * 8) & 0xFF;
+        tableauRGB[cpt++] = (triple >> 0 * 8) & 0xFF;
+
+        i += 4;
+    }
+
+    // Conversion des valeurs RGB en chaîne de caractères
+    char* result = malloc(sizeof(char));
+    int taille=1;
+    printf("otput lenght: %ld\n", output_length);
+    for (int i = 0; i < output_length; i++) {
+        char nombre[4];
+        if (tableauRGB[i]<10)
+        {
+            sprintf(nombre, "00%d", tableauRGB[i]);
+            taille+=strlen(nombre)+2;
+            
+        }else if (tableauRGB[i]<100)
+        {
+            sprintf(nombre, "0%d", tableauRGB[i]);
+            taille+=strlen(nombre)+1;
+            
+        }else
+        {
+            sprintf(nombre, "%d", tableauRGB[i]);
+            taille+=strlen(nombre);
+            
+        }
+        
+        
+        result= (char*)realloc(result, taille*sizeof(char));
+        strcat(result, nombre);
+        printf("%d/%s/%d\n", tableauRGB[i], result, i);
+    }
+    result[taille] = '\0';
+
+    // Libération de la mémoire allouée
+    free(messageDecode);
+    free(tableauRGB);
+
+    return result;
+}
+
 
 void initMatrice(CASE *matrice, int taille){
     for(int i = 0; i < taille; i++) {
@@ -287,6 +372,7 @@ void initMatrice(CASE *matrice, int taille){
 char *setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val){
 	if (posL >= 0 && posL < l && posC >= 0 && posC < c) {
         strcpy(matrice[(posL*c)+posC].couleur, val); //(posL*c)+posC valeur sur un tableau 1D d'une position en tableau 2D
+        printf("la case : '%s'\n",matrice[(posL*c)+posC].couleur );
         return "00\0"; //OK
     }else
     {
@@ -297,21 +383,32 @@ char *setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val){
 }
 
 char* getMatrice(CASE *matrice, int ligne, int colonne) {
-    int i, j;
-    int tailleChaine = ligne * colonne * 10 + 1; // 13 pour les informations d'une case (10 pour la couleur + 3 pour l'espace et le \n)
-    char* chaine = malloc(tailleChaine * sizeof(char));
-    char temp[10]; // 13 pour les informations d'une case (10 pour la couleur + 3 pour l'espace et le \n)
+    int i, j, tailleMax = 10; // Taille maximale d'une couleur
+    char* chaine = malloc((ligne * colonne * tailleMax + 1) * sizeof(char));
+    // La taille de la chaîne résultante doit être suffisamment grande pour stocker tous les caractères
 
+    if (chaine == NULL) {
+        printf("Erreur : impossible d'allouer suffisamment d'espace mémoire pour la chaîne\n");
+        return NULL;
+    }
+    
+    chaine[0] = '\0'; // Initialise la chaîne à la chaîne vide
     // Parcours de la matrice
     for (i = 0; i < ligne; i++) {
         for (j = 0; j < colonne; j++) {
             // Ajout des informations de la case courante à la chaîne
-            sprintf(temp, "%s", matrice[i * colonne + j].couleur);
+            int tailleCouleur = strlen(matrice[i * colonne + j].couleur);
+            char* temp = malloc((tailleCouleur + 1) * sizeof(char)); // Alloue suffisamment d'espace pour stocker la couleur
+            if (temp == NULL) {
+                printf("Erreur : impossible d'allouer suffisamment d'espace mémoire pour temp\n");
+                free(chaine); // Libère l'espace mémoire alloué pour la chaîne
+                return NULL;
+            }
+            strcpy(temp, matrice[i * colonne + j].couleur); // Copie la couleur dans temp
             strcat(chaine, temp);
+            free(temp); // Libère l'espace mémoire alloué pour temp
         }
-        //strcat(chaine, "\n"); // Retour à la ligne après chaque ligne de la matrice
     }
-    //printf("chaine char:%s\n",chaine);
     return chaine;
 }
 
@@ -330,7 +427,7 @@ char *getLimits(int l, int c,int pix_Min){//maxTempsAttente paramettre de serveu
 
 char *getVersion(){
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
-    sprintf(resultat, "2.0");
+    sprintf(resultat, "1");
     return resultat;
 }
 
@@ -425,9 +522,32 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
             int posL = atoi(y);
 
             selectMot(messageRecu, 3, " ", couleur);
+            strcpy(couleur, base64_decode(couleur));
             if (strlen(couleur)==9)
             {
-                liste_client=deduirePixel(liste_client, i);                
+                
+                printf("la couleur: '%s'\n", couleur);
+                CLIENT *curr = liste_client;
+                //printf("l'ID à déduire: %d\n", i);
+                
+                while (curr != NULL && curr->id != i) {
+                    curr = curr->suiv;
+                }
+                if (curr->pixel>0)
+                {
+                    liste_client=deduirePixel(liste_client, i);
+                }else if (time(0)-curr->timer>=60)
+                {
+                    curr->timer=time(0);
+                    curr->pixel=MAX_PIXEL;
+                    liste_client=deduirePixel(liste_client, i);
+                    //afficher_id_clients(liste_client);
+                }
+                else if(time(0)-curr->timer<60)
+                {
+                    return "20\0"; //Out of quota
+                }
+                //liste_client=deduirePixel(liste_client, i);                
                 return setPixel(matrice, posL, posC, l, c, couleur);
             }else
             {
@@ -437,19 +557,20 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
         } else if(strcmp(prMot,"/getSize\0")==0){
             return getSize(l,c);
 
-        } else if(strcmp(prMot,"/getMatrice\0")==0){
+        } else if(strcmp(prMot,"/getMatrix\0")==0){
             
             //printf("matrice commande selected\n");
             char *data= getMatrice(matrice, l, c);
+            printf("matrice ASCII: %s \n", data);
             //printf("matrice commande executed\n");
-            return base64_encode(data ,strlen(data));
+            return base64_encode(data);
 
         } else if(strcmp(prMot,"/getLimits\0")==0){
             return getLimits(l, c, 5);
 
         } else if(strcmp(prMot,"/getVersion\0")==0){
             return getVersion();
-    
+
         } else if(strcmp(prMot,"/getWaitTime\0")==0){
             return getWaitTime(60);
             
@@ -495,7 +616,7 @@ CLIENT* creerClient(){
 	pers->fds.fd = -1;
 	pers->fds.events = POLLIN;
     pers->timer=0;
-    pers->pixel=2;
+    pers->pixel=MAX_PIXEL;
 	return pers;
 }
 
@@ -553,15 +674,18 @@ CLIENT *deduirePixel(CLIENT *liste, int i){
     while (curr != NULL && curr->id != i) {
         curr = curr->suiv;
     }
-    
-    if (curr == NULL) {
-        printf("ID not found\n");
-        return liste;
+    if (curr->pixel>0)
+    {
+        curr->pixel--;
+    }else
+    {
+        /* code */
     }
-    curr->pixel--;
+    
     //printf("l'ID %d a un nombre de pixel de : %d\n", i, curr->pixel);
     
     return liste;
 }
 //---------------------------------------//
+
 

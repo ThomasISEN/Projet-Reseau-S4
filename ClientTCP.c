@@ -8,19 +8,21 @@
 #include <arpa/inet.h> /* pour htons et inet_aton */
 #include <ncurses.h>
 
-#define LG_MESSAGE 256
+#define LG_MESSAGE 1024
 #define PORT IPPORT_USERRESERVED // = 5000
+#define COLOR_PIX 8
 
 void mainClient(int socketEcoute, WINDOW *boite);
 int createSocket();
 void bindSocket(int socketEcoute, int port, char* ip);
 void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, WINDOW *boite);
 //int espace(char messageRecu[LG_MESSAGE]);
-void interpretationMatrice(char messageRecu[LG_MESSAGE], int l, int c);
+void interpretationMatrice(char messageRecu[LG_MESSAGE], WINDOW *boite, int l, int c);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot);
 //void afficheMatrice();
 char *affichage(WINDOW *boite);
 void affichageEntree(int socketEcoute);
+char* base64_encode(const char* rgb);
 
 int main(int argc, char *argv[]){
 
@@ -188,7 +190,7 @@ void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE
 			refresh();
 		}else{
 			//printf("AFFICHAGE MATRICE\n");
-			interpretationMatrice(messageRecu, l, c);
+			interpretationMatrice(messageRecu, boite, l, c);
 		}
 		
 	}
@@ -207,72 +209,121 @@ void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE
 // 	return 1;
 // }
 
-void interpretationMatrice(char messageRecu[LG_MESSAGE], int l, int c){
-	static const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    size_t message_len = strlen(messageRecu);
-    size_t padding = 0;
-	
-	//BASE64->UTF-8
-    // Compter le nombre de caractères de padding
-    if (messageRecu[message_len - 1] == '=')
-        padding++;
-    if (messageRecu[message_len - 2] == '=')
-        padding++;
+char* base64_encode(const char* rgb) {
+    static const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    size_t input_length = strlen(rgb);
+    size_t output_length = 4 * ((input_length + 2) / 3);
+    char* encoded_data = malloc(output_length + 1);
+    if (encoded_data == NULL) return NULL;
 
-    // Calculer la longueur de la sortie
-    size_t output_len = message_len * 3 / 4 - padding;
-	char *messageEnvoi = (char*)malloc(output_len);
+    size_t i, j;
+    uint32_t octet_a, octet_b, octet_c, triple;
 
-    int i, j;
-    unsigned int bits = 0;
-    for (i = 0, j = 0; i < message_len; i++)
-    {
-        int index = strchr(base64_table, messageRecu[i]) - base64_table;
+    char*nombre = malloc(3*sizeof(char));
+    int tableauRGB[input_length/3];
+    int cpt=0;
 
-        if (index >= 0 && index <= 63)
-        {
-            bits = (bits << 6) | index;
-            if (i % 4 == 3)
-            {
-                (messageEnvoi)[j++] = (bits >> 16) & 0xff;
-                (messageEnvoi)[j++] = (bits >> 8) & 0xff;
-                (messageEnvoi)[j++] = bits & 0xff;
-            }
-        }
+    for (i = 0; i < input_length;) {
+        nombre[0] = rgb[i++];
+        nombre[1] = rgb[i++];
+        nombre[2] = rgb[i++];
+
+        tableauRGB[cpt]= atoi(nombre);
+        cpt++;
     }
 
-    if (padding == 1)
-        (messageEnvoi)[j++] = (bits >> 10) & 0xff;
-    else if (padding == 2)
-        (messageEnvoi)[j++] = (bits >> 16) & 0xff;
+    for (i = 0, j = 0; i < input_length/3;) {
+        octet_a = (uint8_t)tableauRGB[i++];
+        octet_b = (uint8_t)tableauRGB[i++];
+        octet_c = (uint8_t)tableauRGB[i++];
+        triple = (octet_a << 16) + (octet_b << 8) + octet_c;
 
-	//AFFICHAGE
-	printf("------Matrice-----\n");
-    //printf("%s\n\n",messageEnvoi);
-	//printf("l:%d c:%d", l, c);
-	int matrice[l][c];
-	int k=0;
-	for (int i = 0; i < l; i++)
+        encoded_data[j++] = base64_table[(triple >> 3 * 6) & 0x3F];
+        encoded_data[j++] = base64_table[(triple >> 2 * 6) & 0x3F];
+        encoded_data[j++] = base64_table[(triple >> 1 * 6) & 0x3F];
+        encoded_data[j++] = base64_table[(triple >> 0 * 6) & 0x3F];
+    }
+
+    // Ajoute les caractères '=' uniquement si nécessaire
+    for (i = 0; i < (3 - (j % 3)) % 3; i++) {
+        encoded_data[j++] = '=';
+    }
+
+    encoded_data[j] = '\0';
+    return encoded_data;
+}
+
+
+void interpretationMatrice(char messageRecu[LG_MESSAGE], WINDOW *boite, int l, int c){
+    static const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+	printw("                         %d", strlen(messageRecu));
+    size_t input_length = strlen(messageRecu);
+
+    size_t output_length = input_length / 4 * 3;
+	
+    size_t i, j;
+    uint32_t sextet_a, sextet_b, sextet_c, sextet_d, triple;
+
+    int* tableauRGB = malloc(output_length * sizeof(int));
+    int cpt = 0;
+	
+    for (i = 0, j = 0; i < input_length;) {
+        sextet_a = (messageRecu[i] == '=') ? 0 : strchr(base64_chars, messageRecu[i]) - base64_chars;
+        sextet_b = (messageRecu[i+1] == '=') ? 0 : strchr(base64_chars, messageRecu[i+1]) - base64_chars;
+        sextet_c = (messageRecu[i+2] == '=') ? 0 : strchr(base64_chars, messageRecu[i+2]) - base64_chars;
+        sextet_d = (messageRecu[i+3] == '=') ? 0 : strchr(base64_chars, messageRecu[i+3]) - base64_chars;
+
+        triple = (sextet_a << 3 * 6)
+               + (sextet_b << 2 * 6)
+               + (sextet_c << 1 * 6)
+               + (sextet_d << 0 * 6);
+
+        tableauRGB[cpt++] = (triple >> 2 * 8) & 0xFF;
+        tableauRGB[cpt++] = (triple >> 1 * 8) & 0xFF;
+        tableauRGB[cpt++] = (triple >> 0 * 8) & 0xFF;
+
+        i += 4;
+    }
+
+    // AFFICHAGE
+	//mvprintw(0, (COLS / 2) - (strlen("------Matrice Decodee-----") / 2), "------Matrice Decodee-----");
+	
+	
+	move(1,0);
+	printw("'%ld'/lignes: %d/colones: %d", output_length,l,c);
+	move(2,0);
+	int color_r = 0;
+	int color_g = 0;
+	int color_b = 0;
+	
+	//start_color();
+	for (int lignes = 1; lignes <= l; lignes++)
 	{
-		for (int j = 0; j < c*3; j++)
+		//printw("'%d'",(lignes-1));
+		for (int i = 0; i < c*3;)
 		{
-			char nombre[3];
-			nombre[0]=messageEnvoi[(i*c*3)+k];
-			nombre[1]=messageEnvoi[((i*c*3)+k)+1];
-			nombre[2]=messageEnvoi[((i*c*3)+k)+2];
-			matrice[i][j]=atoi(nombre);
-			printf("%d",matrice[i][j]);//Affichage a améliorer et stockage aussi si besoin
-			k+=3;
-			
+			//printw("'%d'",tableauRGB[((lignes-1)*c*3)+i+2]* 1000 / 255);
+			color_r = tableauRGB[((lignes-1)*c*3)+i] * 1000 / 255;
+			color_g = tableauRGB[((lignes-1)*c*3)+i+1] * 1000 / 255;
+			color_b = tableauRGB[((lignes-1)*c*3)+i+2] * 1000 / 255;
+			init_color(COLOR_PIX, color_r, color_g, color_b);
+			init_pair(1, COLOR_PIX, COLOR_RED);
+			attron(COLOR_PAIR(1));
+			printw("0");
+			attroff(COLOR_PAIR(1));
+			i+=3;
+
 		}
-		printf("\n");
-		k=0;
-		
+		move(2+lignes,0);
 	}
-	//afficheMatrice();
 	
 	
-	free(messageEnvoi);
+
+	
+	refresh();
+	getch();
+	clear();
 }
 
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot){
@@ -334,12 +385,13 @@ char *affichage(WINDOW *boite){
 	
 
 	char *msgM[] = {
-		"1. Placer un pixel",
-		"2. Taille de la matrice",
-		"3. Limite de pixel par minute",
-		"4. Version du jeu",
-		"5. Temps d'attente avant recharge",
-		"0. Quitter",
+		"a. Placer un pixel",
+		"z. Taille de la matrice",
+		"e. Limite de pixel par minute",
+		"r. Version du jeu",
+		"t. Temps d'attente avant recharge",
+		"y. Afficher la matrice",
+		"q. Quitter",
 		"Appuyer sur le chiffre correspondant pour sélectionner une option"
 	};
 	// Afficher les options du menu
@@ -349,14 +401,15 @@ char *affichage(WINDOW *boite){
 	mvprintw(LINES/2, (COLS/2) - (strlen(msgM[3])/2), msgM[3]);
 	mvprintw(LINES/2 + 1, (COLS/2) - (strlen(msgM[4])/2), msgM[4]);
 	mvprintw(LINES/2 + 2, (COLS/2) - (strlen(msgM[5])/2), msgM[5]);
+	mvprintw(LINES/2 + 3, (COLS/2) - (strlen(msgM[6])/2), msgM[6]);
 
 	// Afficher le message pour sélectionner une option
-	mvprintw((LINES)-2, (COLS/2) - (strlen(msgM[6])/2), msgM[6]);
+	mvprintw((LINES)-2, (COLS/2) - (strlen(msgM[7])/2), msgM[7]);
 	refresh(); // rafraîchir l'affichage
 
 	move(COLS - 1, 0);
 	int key=getch();
-	while (key != 'a' && key != 'z' && key != 'e' && key != 'r' && key != 't' && key != 'y')
+	while (key != 'a' && key != 'z' && key != 'e' && key != 'r' && key != 't' && key != 'y' && key != 'q')
 	{
 		key=getch();
 	}
@@ -365,11 +418,16 @@ char *affichage(WINDOW *boite){
 		/* SetPixel */
 		echo();
 		clear();
-		char phrase[50];
-		getnstr(phrase, 100);
+		char position[50];
+		getnstr(position, 50);
+		char couleur[50];
+		getnstr(couleur, 50);
+		strcpy(couleur,base64_encode(couleur));
+		
 		char *messageFinal = malloc(100 * sizeof(char)); // allocation de la mémoire
-		sprintf(messageFinal, "/setPixel %s", phrase);
+		sprintf(messageFinal, "/setPixel %s %s", position, couleur);
 		clear();
+		mvprintw(1, 0, "le msg: %s", messageFinal);
 		noecho();
 		return messageFinal;
 
@@ -394,6 +452,11 @@ char *affichage(WINDOW *boite){
 		clear();
 		return "/getWaitTime\0";
 	}else if (key == 'y')
+	{
+		/* getWaitTime */
+		clear();
+		return "/getMatrix\0";
+	}else if (key == 'q')
 	{
 		endwin();
 		free(boite);
