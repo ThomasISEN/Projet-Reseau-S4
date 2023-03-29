@@ -260,6 +260,11 @@ char* base64_encode(const char* rgb) {
 }
 
 
+/// @brief 
+/// @param messageRecu 
+/// @param boite 
+/// @param l 
+/// @param c 
 void interpretationMatrice(char messageRecu[LG_MESSAGE], WINDOW *boite, int l, int c){
     static const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
