@@ -8,8 +8,10 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <poll.h>
+#include <time.h>
 
 #define LG_MESSAGE 1024
+#define MAX_CLIENT 10
 
 typedef struct CASE{
 	char couleur[10]; //couleur format RRRGGGBBB
@@ -20,6 +22,8 @@ typedef struct CLIENT CLIENT;
 
 struct CLIENT{
 	int id;
+    clock_t timer;
+    int pixel;
 	int client_fds;
 	struct pollfd fds;
 	CLIENT *suiv;
@@ -27,36 +31,48 @@ struct CLIENT{
 };
 
 //-------------HEADER-------------//
-void initMartice(CASE *matrice, int taille);
+void initMatrice(CASE *matrice, int taille);
 char *setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val);
-char *getMatrice(CASE *matrice, int taille);
+char *getMatrice(CASE *matrice, int ligne,int colone);
 char *getSize(int l, int c);
 char *getLimits(int l, int c,int maxTempsAttente);
 char *getVersion();
-char *getWaitTime(int timer);
+char *getWaitTime(CLIENT *liste, int i);
 void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot);
 void afficheMatrice(CASE *matrice);
 int createSocket();
 void bindSocket(int socketEcoute, int port);
 void listenSocket(int socketEcoute);
-char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]);
-void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int maxClients);
+char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE], CLIENT *liste_client, int i, int max_pixel);
+void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int max_pixel);
 CLIENT* creerClient();
 CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers);
 CLIENT* supprimeClient(CLIENT *liste, int idSup);
-CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients);
-char* base64_encode(const unsigned char* input, size_t input_len);
+CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds);
+CLIENT *deduirePixel(CLIENT *liste, int i);
+char* base64_encode(const char* rgb);
+char* base64_decode(const char* messageRecu);
+
+
+
+void afficher_id_clients(struct CLIENT *liste_client) {
+    struct CLIENT *p = liste_client;
+    while (p != NULL) {
+        printf("ID client : %d restant: %d\n", p->id, p->pixel);
+        p = p->suiv;
+    }
+}
 
 //---------------------------------------//
 int main(int argc, char *argv[]) {
 
 	//Interpretation de la commande du lancement serveur
     int opt;
-    int port=0, c=0, l=0, maxClients=0;
+    int port=0, c=0, l=0, max_pixel=0;
 
 	// Vérifie que la commande a la forme attendue
-    if (argc != 7) {
+    if (argc != 7 && argc != 5 && argc != 3 && argc != 1) {
         fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l MAX_CLIENTS]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -70,22 +86,38 @@ int main(int argc, char *argv[]) {
                 sscanf(optarg, "%dx%d", &c, &l);
                 break;
             case 'l':
-                maxClients = atoi(optarg);
+                max_pixel = atoi(optarg);
                 break;
             default:
                 fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l MAX_CLIENTS]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
+    if (port==0 || port<1024)
+    {
+        port=5000;
+    }
+    if (c==0 || l==0)
+    {
+        c=80;
+        l=40;
+    }
+    if (max_pixel==0)
+    {
+        max_pixel=10;
+    }
+    
+    
+    
 
     // Création des sockets
     CASE matrice[l*c];
 	CLIENT *liste_client=NULL;
-    int socketEcoute, client_fds[maxClients];
+    int socketEcoute, client_fds[MAX_CLIENT];
     struct sockaddr_in server_addr;
 	struct pollfd serveur_fds;
 
-    initMartice(matrice, l*c);
+    initMatrice(matrice, l*c);
 
     // Création du socket serveur
     socketEcoute = createSocket();
@@ -95,18 +127,18 @@ int main(int argc, char *argv[]) {
 
     // Mise en écoute du socket serveur
     listenSocket(socketEcoute);
-
+    printf("%d/%dx%d/%d\n",port, l,c,max_pixel);
 	//lancement du serveur
-	mainServeur(matrice, l, c, socketEcoute, liste_client, maxClients);
+	mainServeur(matrice, l, c, socketEcoute, liste_client, max_pixel);
 
     return 0;
 }
 
-void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int maxClients){
+void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int max_pixel){
 
 	struct sockaddr_in client_addr;
     socklen_t addrlen = sizeof(client_addr);
-	struct pollfd fds[maxClients + 1]; //ajouter le fds du serveur
+	struct pollfd fds[MAX_CLIENT + 1]; //ajouter le fds du serveur
 	fds[0].fd = socketEcoute;
     fds[0].events = POLLIN;
 
@@ -114,7 +146,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
     while (1) {
 
 		//actualisation de la liste du poll()
-		for (int j = 1; j < (maxClients+1); j++) {
+		for (int j = 1; j < (MAX_CLIENT+1); j++) {
 			fds[j].fd = -1;
 			fds[j].events = POLLIN;
     	}
@@ -123,7 +155,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 		{
 			int i=1;
 			CLIENT *tmp = liste_client;
-			while(tmp!=NULL && i<(maxClients+1)){
+			while(tmp!=NULL && i<(MAX_CLIENT+1)){
 				fds[i]=tmp->fds;
 				tmp->id=i;
 				tmp=tmp->suiv;
@@ -134,7 +166,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 		}
 
         // Attente d'événements sur les sockets
-        int rc = poll(fds, maxClients + 1, -1);
+        int rc = poll(fds, MAX_CLIENT + 1, -1);
         if (rc == -1) {
             perror("Erreur lors de l'appel à poll()");
             exit(EXIT_FAILURE);
@@ -148,10 +180,10 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
                 perror("Erreur lors de l'acceptation de la connexion");
             } else {
 				//on regarde si il n'a a pas trop de clients
-				int i=0;
+				int i=1;
 				if (liste_client!=NULL)
 				{
-					i=1;
+                    i=2;
 					CLIENT *tmp = liste_client;
 					while(tmp->suiv!=NULL){
 						tmp=tmp->suiv;
@@ -159,7 +191,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 					}
 				}
 				printf("i: %d\n",i);
-				if (i>= maxClients) {
+				if (i>= MAX_CLIENT) {
                     printf("Trop de connexions simultanées, fermeture de la connexion\n");
                     close(new_fd);
                 }else
@@ -169,13 +201,15 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 					client= creerClient();
 					client->client_fds = new_fd;
 					client->fds.fd = new_fd;
+                    client->id=i;
+                    client->timer=time(0);
 					liste_client=ajouterClient(liste_client, client);
 					printf("Nouvelle connexion : %s:%d id:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client->id);
 				}
             }
         }
         // Vérification des événements sur les sockets clients
-        for (int i = 1; i < maxClients; i++) {
+        for (int i = 1; i < MAX_CLIENT; i++) {
             char messageEnvoi[LG_MESSAGE];
             char messageRecu[LG_MESSAGE];
 
@@ -192,16 +226,15 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
                 } else {
                     // Affichage du message reçu
                     messageRecu[lus]='\0';
-                    printf("Message reçu de %s:%d : %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);
-
-                    strcpy(messageEnvoi,interpretationMsg(matrice, l, c, messageRecu));
+                    printf("Message reçu de %s:%d : '%s'\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);                    
+                    strcpy(messageEnvoi,interpretationMsg(matrice, l, c, messageRecu, liste_client, i, max_pixel));
                     // Mise à jour de l'état du client
-                    liste_client = actualiseClient(liste_client, fds, maxClients);
+                    liste_client = actualiseClient(liste_client, fds);
                 }
 
             }else  if (fds[i].fd!=-1 && fds[i].revents & POLLOUT) {
                 // Mise à jour de l'état du client
-                liste_client = actualiseClient(liste_client, fds, maxClients);
+                liste_client = actualiseClient(liste_client, fds);
 
                 int ecrits = write(fds[i].fd, messageEnvoi, strlen(messageEnvoi));
                 switch (ecrits) {
@@ -216,7 +249,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
                         liste_client=supprimeClient(liste_client, i);
                         exit(0);
                     default:
-                        //printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
+                    printf("%s\n(%d octets)\n\n", messageEnvoi, ecrits);
                 }
             }
 
@@ -231,20 +264,34 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 
 
 //-------------FONCTION DE JEU-------------//
-char* base64_encode(const unsigned char* data, size_t input_length) {
+char* base64_encode(const char* rgb) {
     static const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    size_t input_length = strlen(rgb);
     size_t output_length = 4 * ((input_length + 2) / 3);
-    char *encoded_data = malloc(output_length + 1);
+    char* encoded_data = malloc(output_length + 1);
     if (encoded_data == NULL) return NULL;
 
     size_t i, j;
     uint32_t octet_a, octet_b, octet_c, triple;
 
-    for (i = 0, j = 0; i < input_length;) {
-        octet_a = data[i++];
-        octet_b = (i < input_length) ? data[i++] : 0;
-        octet_c = (i < input_length) ? data[i++] : 0;
-        triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+    char*nombre = malloc(3*sizeof(char));
+    int tableauRGB[input_length/3];
+    int cpt=0;
+
+    for (i = 0; i < input_length;) {
+        nombre[0] = rgb[i++];
+        nombre[1] = rgb[i++];
+        nombre[2] = rgb[i++];
+
+        tableauRGB[cpt]= atoi(nombre);
+        cpt++;
+    }
+
+    for (i = 0, j = 0; i < input_length/3;) {
+        octet_a = (uint8_t)tableauRGB[i++];
+        octet_b = (uint8_t)tableauRGB[i++];
+        octet_c = (uint8_t)tableauRGB[i++];
+        triple = (octet_a << 16) + (octet_b << 8) + octet_c;
 
         encoded_data[j++] = base64_table[(triple >> 3 * 6) & 0x3F];
         encoded_data[j++] = base64_table[(triple >> 2 * 6) & 0x3F];
@@ -258,11 +305,80 @@ char* base64_encode(const unsigned char* data, size_t input_length) {
     }
 
     encoded_data[j] = '\0';
-
     return encoded_data;
 }
 
-void initMartice(CASE *matrice, int taille){
+char* base64_decode(const char* messageRecu) {
+    static const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    size_t input_length = strlen(messageRecu);
+
+    printf("%s\n", messageRecu);
+    size_t output_length = input_length / 4 * 3;
+
+    unsigned char* messageDecode = malloc(output_length + 1);
+    size_t i, j;
+    uint32_t sextet_a, sextet_b, sextet_c, sextet_d, triple;
+
+    int* tableauRGB = malloc(output_length * sizeof(int));
+    int cpt = 0;
+
+    for (i = 0, j = 0; i < input_length;) {
+        sextet_a = (messageRecu[i] == '=') ? 0 : strchr(base64_chars, messageRecu[i]) - base64_chars;
+        sextet_b = (messageRecu[i+1] == '=') ? 0 : strchr(base64_chars, messageRecu[i+1]) - base64_chars;
+        sextet_c = (messageRecu[i+2] == '=') ? 0 : strchr(base64_chars, messageRecu[i+2]) - base64_chars;
+        sextet_d = (messageRecu[i+3] == '=') ? 0 : strchr(base64_chars, messageRecu[i+3]) - base64_chars;
+
+        triple = (sextet_a << 3 * 6)
+               + (sextet_b << 2 * 6)
+               + (sextet_c << 1 * 6)
+               + (sextet_d << 0 * 6);
+
+        tableauRGB[cpt++] = (triple >> 2 * 8) & 0xFF;
+        tableauRGB[cpt++] = (triple >> 1 * 8) & 0xFF;
+        tableauRGB[cpt++] = (triple >> 0 * 8) & 0xFF;
+
+        i += 4;
+    }
+
+    // Conversion des valeurs RGB en chaîne de caractères
+    int taille=3;
+    char* result = malloc(taille*sizeof(char));
+    printf("otput lenght: %ld\n", output_length);
+    for (int i = 0; i < output_length; i++) {
+        char nombre[4];
+        if (tableauRGB[i]<10)
+        {
+            sprintf(nombre, "00%d", tableauRGB[i]);
+            taille+=strlen(nombre)+2;
+            
+        }else if (tableauRGB[i]<100)
+        {
+            sprintf(nombre, "0%d", tableauRGB[i]);
+            taille+=strlen(nombre)+1;
+            
+        }else
+        {
+            sprintf(nombre, "%d", tableauRGB[i]);
+            taille+=strlen(nombre);
+            
+        }
+        
+        
+        result= (char*)realloc(result, taille*sizeof(char));
+        strcat(result, nombre);
+        printf("%d/%s/%d\n", tableauRGB[i], result, i);
+    }
+    result[taille] = '\0';
+
+    // Libération de la mémoire allouée
+    free(messageDecode);
+    free(tableauRGB);
+
+    return result;
+}
+
+
+void initMatrice(CASE *matrice, int taille){
     for(int i = 0; i < taille; i++) {
         strcpy(matrice[i].couleur,"255255255");
     }
@@ -271,60 +387,94 @@ void initMartice(CASE *matrice, int taille){
 
 char *setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val){
 	if (posL >= 0 && posL < l && posC >= 0 && posC < c) {
+        for (int i = 0; i < 9;)
+        {
+            char nombre[3]={val[i],val[i+1],val[i+2]};
+            if (atoi(nombre)>255 || atoi(nombre)<0)
+            {
+                return "12 Bad Color\0";//Bad Color
+            }
+            i+=3;
+        }
         strcpy(matrice[(posL*c)+posC].couleur, val); //(posL*c)+posC valeur sur un tableau 1D d'une position en tableau 2D
-        return "00\0"; //OK
+        printf("la case : '%s'\n",matrice[(posL*c)+posC].couleur);
+        return "00 OK\0"; //OK
     }else
     {
         printf("Out of Bounds\n");
-        return "11\0";//Out of Bounds
+        return "11 Out Of Bound\0";//Out of Bounds
     }
     
 }
 
-char* getMatrice(CASE *matrice, int taille) {
-    char* matstr = NULL;
-    int matstr_size = 0;
-    for (int i = 0; i < taille; ++i) {
-        char* couleur = matrice[i].couleur;
-        int couleur_size = strlen(couleur);
-        matstr_size += couleur_size+2;
-        matstr = (char*)realloc(matstr, matstr_size +1);
-        //strcat(matstr, "|");
-        strcat(matstr, couleur);
-        //strcat(matstr, "|");
+char* getMatrice(CASE *matrice, int ligne, int colonne) {
+    int i, j, tailleMax = 10; // Taille maximale d'une couleur
+    char* chaine = malloc((ligne * colonne * tailleMax + 1) * sizeof(char));
+    // La taille de la chaîne résultante doit être suffisamment grande pour stocker tous les caractères
+
+    if (chaine == NULL) {
+        printf("Erreur : impossible d'allouer suffisamment d'espace mémoire pour la chaîne\n");
+        return NULL;
     }
-    // matstr_size += 1;
-    // matstr = (char*)realloc(matstr, matstr_size + 1);// +1 pour le \0
-    //strcat(matstr, "\n");
-    return matstr;
+    
+    chaine[0] = '\0'; // Initialise la chaîne à la chaîne vide
+    // Parcours de la matrice
+    for (i = 0; i < ligne; i++) {
+        for (j = 0; j < colonne; j++) {
+            // Ajout des informations de la case courante à la chaîne
+            int tailleCouleur = strlen(matrice[i * colonne + j].couleur);
+            char* temp = malloc((tailleCouleur + 1) * sizeof(char)); // Alloue suffisamment d'espace pour stocker la couleur
+            if (temp == NULL) {
+                printf("Erreur : impossible d'allouer suffisamment d'espace mémoire pour temp\n");
+                free(chaine); // Libère l'espace mémoire alloué pour la chaîne
+                return NULL;
+            }
+            strcpy(temp, matrice[i * colonne + j].couleur); // Copie la couleur dans temp
+            strcat(chaine, temp);
+            free(temp); // Libère l'espace mémoire alloué pour temp
+        }
+    }
+    return chaine;
 }
+
 
 char *getSize(int l, int c){//C et L paramettre de serveur
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
-    sprintf(resultat, "Taille: %dx%d", l, c);
+    sprintf(resultat, "%dx%d", c, l);
     return resultat;
 }
 
-char *getLimits(int l, int c,int maxTempsAttente){//maxTempsAttente paramettre de serveur
+char *getLimits(int l, int c,int pix_Min){//maxTempsAttente paramettre de serveur
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
-    sprintf(resultat, "Limits: (%d, %d), (%d s)", l, c, maxTempsAttente);
+    sprintf(resultat, "%d", pix_Min);
     return resultat;
 }
 
 char *getVersion(){
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
-    sprintf(resultat, "Version: 2.0");
+    sprintf(resultat, "1");
     return resultat;
 }
 
-char *getWaitTime(int timer){//A identifier par rapport à l'IP client
+char *getWaitTime(CLIENT *liste, int i){
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
-    sprintf(resultat, "temps d'attente: %d s", timer);
+    
+    CLIENT *curr = liste;
+    while (curr != NULL && curr->id != i) {
+        curr = curr->suiv;
+    }
+    if (time(0)-curr->timer>=60 || curr->pixel>0)
+    {
+        sprintf(resultat, "%d", 0);
+    }else
+    {
+        sprintf(resultat, "%ld", 60-(time(0)-curr->timer));
+    }
     return resultat;
 }
 
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot){
-	int i=0, j=0, cpt=1;
+	int i=0, j=0, cpt=1;  
 
 	while (phrase[i]!='\n'  && phrase[i]!='\0')
 	{
@@ -341,15 +491,6 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur
 		}
 	}
 	mot[j]='\0';
-
-	//ajout pour gérer les erreurs setPixel
-	if (cpt>3)//trop de mot pour la commande SetPixel
-	{
-		mot[0] = '\0'; // chaîne vide
-	}else if (*separateur=='x' && cpt!=2)//pas assez ou trop d'argument à la commande
-	{
-		mot[0] = '\0'; // chaîne vide
-	}
 }
 //---------------------------------------//
 
@@ -386,7 +527,10 @@ void listenSocket(int socketEcoute) {
     printf("Socket placée en écoute passive ...\n");
 }
 
-char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]){
+char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE], CLIENT *liste_client, int i, int max_pixel){
+        //printf("interpretation message...\n");
+        //printf("pixel restants pour chaque clients:\n");
+        //afficher_id_clients(liste_client);
 
         char prMot[LG_MESSAGE]; //le premier mot de la commande
         selectMot(messageRecu, 1, " ", prMot);
@@ -405,21 +549,55 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
             int posL = atoi(y);
 
             selectMot(messageRecu, 3, " ", couleur);
+            if(strlen(couleur)>5 || strcmp(couleur,"12\0")==0){
+                return "12 Bad Color\0";// Bad color
+            }
+            strcpy(couleur, base64_decode(couleur));
             if (strlen(couleur)==9)
             {
-                return setPixel(matrice, posL, posC, l, c, couleur);
+                CLIENT *curr = liste_client;
+                while (curr != NULL && curr->id != i) {
+                    curr = curr->suiv;
+                }
+
+                if (curr->pixel>0 || time(0)-curr->timer>=60)
+                {
+                    if (strcmp(setPixel(matrice, posL, posC, l, c, couleur),"00 OK\0")==0)
+                    {
+                        if (curr->pixel>0)
+                        {
+                            liste_client=deduirePixel(liste_client, i);
+                            curr->timer=time(0);
+                        }else{
+                            curr->timer=time(0);
+                            curr->pixel=max_pixel;
+                        }
+                        afficher_id_clients(liste_client);
+                        return "00 OK\0";
+                    } else{
+                        return "11 Out Of Bound\0";
+                    }
+                    
+                }else
+                {
+                    return "20 Out Of Quota\0"; //Out of quota
+                }              
+                
             }else
             {
-                return "12\0";//Bad Command
+                return "12 Bad Color\0";// Bad color
             }
 
         } else if(strcmp(prMot,"/getSize\0")==0){
             return getSize(l,c);
 
-        } else if(strcmp(prMot,"/getMatrice\0")==0){
-            char data[LG_MESSAGE];
-            strcpy(data,getMatrice(matrice, l*c));
-            return base64_encode(data ,strlen(data));
+        } else if(strcmp(prMot,"/getMatrix\0")==0){
+            
+            //printf("matrice commande selected\n");
+            char *data= getMatrice(matrice, l, c);
+            printf("matrice ASCII: %s \n", data);
+            //printf("matrice commande executed\n");
+            return base64_encode(data);
 
         } else if(strcmp(prMot,"/getLimits\0")==0){
             return getLimits(l, c, 5);
@@ -428,10 +606,10 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
             return getVersion();
 
         } else if(strcmp(prMot,"/getWaitTime\0")==0){
-            return getWaitTime(60);
+            return getWaitTime(liste_client, i);
             
         } else{
-            return "10\0";
+            return "99 Unknown Command\0";
         }
 }
 //---------------------------------------//
@@ -464,13 +642,15 @@ CLIENT* supprimeClient(CLIENT *liste, int idSup){
     return liste;
 }
 
-CLIENT* creerClient(){
+CLIENT* creerClient(int max_pixel){
 	CLIENT *pers = malloc(sizeof(CLIENT));
 	pers->suiv=NULL;
 	pers->id=0;
 	pers->client_fds = -1;
 	pers->fds.fd = -1;
 	pers->fds.events = POLLIN;
+    pers->timer=0;
+    pers->pixel=max_pixel;
 	return pers;
 }
 
@@ -493,7 +673,7 @@ CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers){
 
 }
 
-CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients) {
+CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds) {
     struct CLIENT *ptr = liste_client;
 
     // Parcourir la liste chainée
@@ -502,7 +682,7 @@ CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients
 
         // Trouver le pollfd correspondant
         int i;
-        for (i = 1; i < maxClients; i++) {
+        for (i = 1; i < MAX_CLIENT; i++) {
             if (fds[i].fd == client_fd) {
                 break;
             }
@@ -520,5 +700,26 @@ CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients
 
     return liste_client;
 }
+
+CLIENT *deduirePixel(CLIENT *liste, int i){
+    CLIENT *curr = liste;
+    //printf("l'ID à déduire: %d\n", i);
+    
+    while (curr != NULL && curr->id != i) {
+        curr = curr->suiv;
+    }
+    if (curr->pixel>0)
+    {
+        curr->pixel--;
+    }else
+    {
+        /* code */
+    }
+    
+    //printf("l'ID %d a un nombre de pixel de : %d\n", i, curr->pixel);
+    
+    return liste;
+}
 //---------------------------------------//
+
 
