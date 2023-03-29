@@ -10,7 +10,7 @@
 
 #define LG_MESSAGE 1024
 #define PORT IPPORT_USERRESERVED // = 5000
-#define COLOR_PIX 8
+
 
 void mainClient(int socketEcoute, WINDOW *boite);
 int createSocket();
@@ -33,24 +33,28 @@ int main(int argc, char *argv[]){
     int port=0;
 	char *ip = NULL;
 	// Vérifie que la commande a la forme attendue
-    if (argc != 5) {
-        fprintf(stderr, "Usage: %s [-i IP] [-p PORT]\n", argv[0]);
+    if (argc != 5 && argc != 3) {
+        fprintf(stderr, "Usage: %s <-s IP> [-p PORT]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    while ((opt = getopt(argc, argv, "i:p:")) != -1) {
+    while ((opt = getopt(argc, argv, "s:p:")) != -1) {
         switch (opt) {
-            case 'i':
+            case 's':
                 ip = optarg;
                 break;
             case 'p':
                 port = atoi(optarg);
                 break;
             default:
-                fprintf(stderr, "Usage: %s [-i IP] [-p PORT]\n", argv[0]);
+                fprintf(stderr, "Usage: %s <-s IP> [-p PORT]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
-
+	if (port==0)
+	{
+		port=5000;
+	}
+	
 
 	// Crée un socket de communication
 	socketEcoute = createSocket(); 
@@ -298,32 +302,50 @@ void interpretationMatrice(char messageRecu[LG_MESSAGE], WINDOW *boite, int l, i
 	int color_r = 0;
 	int color_g = 0;
 	int color_b = 0;
-	
-	//start_color();
-	for (int lignes = 1; lignes <= l; lignes++)
-	{
-		//printw("'%d'",(lignes-1));
-		for (int i = 0; i < c*3;)
-		{
-			//printw("'%d'",tableauRGB[((lignes-1)*c*3)+i+2]* 1000 / 255);
-			color_r = tableauRGB[((lignes-1)*c*3)+i] * 1000 / 255;
-			color_g = tableauRGB[((lignes-1)*c*3)+i+1] * 1000 / 255;
-			color_b = tableauRGB[((lignes-1)*c*3)+i+2] * 1000 / 255;
-			init_color(COLOR_PIX, color_r, color_g, color_b);
-			init_pair(1, COLOR_PIX, COLOR_RED);
-			attron(COLOR_PAIR(1));
-			printw("0");
-			attroff(COLOR_PAIR(1));
-			i+=3;
+	int COLOR_PIX=8;
 
-		}
-		move(2+lignes,0);
-	}
+	if(has_colors())
+    {
+        if(start_color() == OK)
+        {
+            for (int lignes = 1; lignes <= l; lignes++)
+			{
+				//printw("'%d'",(lignes-1));
+				for (int i = 0; i < c*3;)
+				{
+					//printw("'%d'",tableauRGB[((lignes-1)*c*3)+i]* 1000 / 255);
+					fprintf(stderr, "indice: %d\n", i);
+					color_r = tableauRGB[((lignes-1)*c*3)+i] * 1000 / 255;
+					color_g = tableauRGB[((lignes-1)*c*3)+i+1] * 1000 / 255;
+					color_b = tableauRGB[((lignes-1)*c*3)+i+2] * 1000 / 255;
+					//printw("%d/%d/%d",color_r,color_g,color_b);
+					init_color(COLOR_PIX, color_r, color_g, color_b);
+					init_pair(1, COLOR_PIX, COLOR_RED);
+					attron(COLOR_PAIR(1));
+					printw("0");
+					refresh();
+					attroff(COLOR_PAIR(1));
+					i+=3;
+
+				}
+				move(2+lignes,0);
+			}
+        }
+        else
+        {
+            addstr("Cannot start colours\n");
+            refresh();
+        }
+    }
+    else
+    {
+        addstr("Not colour capable\n");
+        refresh();
+    }
+	
 	
 	
 
-	
-	refresh();
 	getch();
 	clear();
 }

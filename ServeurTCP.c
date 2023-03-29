@@ -11,7 +11,7 @@
 #include <time.h>
 
 #define LG_MESSAGE 1024
-#define MAX_PIXEL 5
+#define MAX_CLIENT 10
 
 typedef struct CASE{
 	char couleur[10]; //couleur format RRRGGGBBB
@@ -44,12 +44,12 @@ void afficheMatrice(CASE *matrice);
 int createSocket();
 void bindSocket(int socketEcoute, int port);
 void listenSocket(int socketEcoute);
-char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE], CLIENT *liste_client, int i);
-void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int maxClients);
+char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE], CLIENT *liste_client, int i, int max_pixel);
+void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int max_pixel);
 CLIENT* creerClient();
 CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers);
 CLIENT* supprimeClient(CLIENT *liste, int idSup);
-CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients);
+CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds);
 CLIENT *deduirePixel(CLIENT *liste, int i);
 char* base64_encode(const char* rgb);
 char* base64_decode(const char* messageRecu);
@@ -69,11 +69,11 @@ int main(int argc, char *argv[]) {
 
 	//Interpretation de la commande du lancement serveur
     int opt;
-    int port=0, c=0, l=0, maxClients=0;
+    int port=0, c=0, l=0, max_pixel=0;
 
 	// Vérifie que la commande a la forme attendue
-    if (argc != 7) {
-        fprintf(stderr, "Usage: %s <-p PORT> <-s LxH> <-l MAX_CLIENTS>\n", argv[0]);
+    if (argc != 7 && argc != 5 && argc != 3 && argc != 1) {
+        fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l MAX_CLIENTS]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -86,18 +86,34 @@ int main(int argc, char *argv[]) {
                 sscanf(optarg, "%dx%d", &c, &l);
                 break;
             case 'l':
-                maxClients = atoi(optarg);
+                max_pixel = atoi(optarg);
                 break;
             default:
-                fprintf(stderr, "Usage: %s <-p PORT> <-s LxH> <-l MAX_CLIENTS>\n", argv[0]);
+                fprintf(stderr, "Usage: %s [-p PORT] [-s LxH] [-l MAX_CLIENTS]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
+    if (port==0 || port<1024)
+    {
+        port=5000;
+    }
+    if (c==0 || l==0)
+    {
+        c=80;
+        l=40;
+    }
+    if (max_pixel==0)
+    {
+        max_pixel=10;
+    }
+    
+    
+    
 
     // Création des sockets
     CASE matrice[l*c];
 	CLIENT *liste_client=NULL;
-    int socketEcoute, client_fds[maxClients];
+    int socketEcoute, client_fds[MAX_CLIENT];
     struct sockaddr_in server_addr;
 	struct pollfd serveur_fds;
 
@@ -111,18 +127,18 @@ int main(int argc, char *argv[]) {
 
     // Mise en écoute du socket serveur
     listenSocket(socketEcoute);
-
+    printf("%d/%dx%d/%d\n",port, l,c,max_pixel);
 	//lancement du serveur
-	mainServeur(matrice, l, c, socketEcoute, liste_client, maxClients);
+	mainServeur(matrice, l, c, socketEcoute, liste_client, max_pixel);
 
     return 0;
 }
 
-void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int maxClients){
+void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_client, int max_pixel){
 
 	struct sockaddr_in client_addr;
     socklen_t addrlen = sizeof(client_addr);
-	struct pollfd fds[maxClients + 1]; //ajouter le fds du serveur
+	struct pollfd fds[MAX_CLIENT + 1]; //ajouter le fds du serveur
 	fds[0].fd = socketEcoute;
     fds[0].events = POLLIN;
 
@@ -130,7 +146,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
     while (1) {
 
 		//actualisation de la liste du poll()
-		for (int j = 1; j < (maxClients+1); j++) {
+		for (int j = 1; j < (MAX_CLIENT+1); j++) {
 			fds[j].fd = -1;
 			fds[j].events = POLLIN;
     	}
@@ -139,7 +155,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 		{
 			int i=1;
 			CLIENT *tmp = liste_client;
-			while(tmp!=NULL && i<(maxClients+1)){
+			while(tmp!=NULL && i<(MAX_CLIENT+1)){
 				fds[i]=tmp->fds;
 				tmp->id=i;
 				tmp=tmp->suiv;
@@ -150,7 +166,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 		}
 
         // Attente d'événements sur les sockets
-        int rc = poll(fds, maxClients + 1, -1);
+        int rc = poll(fds, MAX_CLIENT + 1, -1);
         if (rc == -1) {
             perror("Erreur lors de l'appel à poll()");
             exit(EXIT_FAILURE);
@@ -175,7 +191,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
 					}
 				}
 				printf("i: %d\n",i);
-				if (i>= maxClients) {
+				if (i>= MAX_CLIENT) {
                     printf("Trop de connexions simultanées, fermeture de la connexion\n");
                     close(new_fd);
                 }else
@@ -193,7 +209,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
             }
         }
         // Vérification des événements sur les sockets clients
-        for (int i = 1; i < maxClients; i++) {
+        for (int i = 1; i < MAX_CLIENT; i++) {
             char messageEnvoi[LG_MESSAGE];
             char messageRecu[LG_MESSAGE];
 
@@ -211,14 +227,14 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
                     // Affichage du message reçu
                     messageRecu[lus]='\0';
                     printf("Message reçu de %s:%d : '%s'\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);                    
-                    strcpy(messageEnvoi,interpretationMsg(matrice, l, c, messageRecu, liste_client, i));
+                    strcpy(messageEnvoi,interpretationMsg(matrice, l, c, messageRecu, liste_client, i, max_pixel));
                     // Mise à jour de l'état du client
-                    liste_client = actualiseClient(liste_client, fds, maxClients);
+                    liste_client = actualiseClient(liste_client, fds);
                 }
 
             }else  if (fds[i].fd!=-1 && fds[i].revents & POLLOUT) {
                 // Mise à jour de l'état du client
-                liste_client = actualiseClient(liste_client, fds, maxClients);
+                liste_client = actualiseClient(liste_client, fds);
 
                 int ecrits = write(fds[i].fd, messageEnvoi, strlen(messageEnvoi));
                 switch (ecrits) {
@@ -511,7 +527,7 @@ void listenSocket(int socketEcoute) {
     printf("Socket placée en écoute passive ...\n");
 }
 
-char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE], CLIENT *liste_client, int i){
+char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE], CLIENT *liste_client, int i, int max_pixel){
         //printf("interpretation message...\n");
         //printf("pixel restants pour chaque clients:\n");
         //afficher_id_clients(liste_client);
@@ -554,7 +570,7 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
                             curr->timer=time(0);
                         }else{
                             curr->timer=time(0);
-                            curr->pixel=MAX_PIXEL;
+                            curr->pixel=max_pixel;
                         }
                         afficher_id_clients(liste_client);
                         return "00 OK\0";
@@ -626,7 +642,7 @@ CLIENT* supprimeClient(CLIENT *liste, int idSup){
     return liste;
 }
 
-CLIENT* creerClient(){
+CLIENT* creerClient(int max_pixel){
 	CLIENT *pers = malloc(sizeof(CLIENT));
 	pers->suiv=NULL;
 	pers->id=0;
@@ -634,7 +650,7 @@ CLIENT* creerClient(){
 	pers->fds.fd = -1;
 	pers->fds.events = POLLIN;
     pers->timer=0;
-    pers->pixel=MAX_PIXEL;
+    pers->pixel=max_pixel;
 	return pers;
 }
 
@@ -657,7 +673,7 @@ CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers){
 
 }
 
-CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients) {
+CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds) {
     struct CLIENT *ptr = liste_client;
 
     // Parcourir la liste chainée
@@ -666,7 +682,7 @@ CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds, int maxClients
 
         // Trouver le pollfd correspondant
         int i;
-        for (i = 1; i < maxClients; i++) {
+        for (i = 1; i < MAX_CLIENT; i++) {
             if (fds[i].fd == client_fd) {
                 break;
             }
