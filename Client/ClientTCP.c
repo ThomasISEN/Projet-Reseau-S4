@@ -1,3 +1,12 @@
+/**
+ * \file ClientTCP.c
+ * \brief Gestion du client
+ * \author Denis Arrahmani Massard
+ * \version 1
+ * \date 31 mars 2023
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h> /* pour exit */
 #include <unistd.h> /* pour close */
@@ -8,6 +17,12 @@
 #include <arpa/inet.h> /* pour htons et inet_aton */
 #include <ncurses.h>
 
+/**
+ * @defgroup fonct_duClient Fonctions du client 
+ * Fonctions qui permettent de faire fonctionner le client
+ */
+
+
 #define LG_MESSAGE 1024
 #define PORT IPPORT_USERRESERVED // = 5000
 
@@ -17,7 +32,7 @@ int createSocket();
 void bindSocket(int socketEcoute, int port, char* ip);
 void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, WINDOW *boite);
 //int espace(char messageRecu[LG_MESSAGE]);
-void interpretationMatrice(char messageRecu[LG_MESSAGE], WINDOW *boite, int l, int c);
+void interpretationMatrice(const char messageRecu[LG_MESSAGE], WINDOW* boite, const int l, const int c);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot);
 //void afficheMatrice();
 char *affichage(WINDOW *boite);
@@ -70,6 +85,13 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
+/**
+ * Fonction principale du client. Initialise et gère les communications avec le serveur.
+ * @param socketEcoute La socket d'écoute utilisée pour la communication avec le serveur.
+ * @param boite La fenêtre d'affichage du jeu.
+ * @return Cette fonction ne retourne rien.
+ * @ingroup fonct_duClient
+*/
 void mainClient(int socketEcoute, WINDOW *boite){
 
 	int ecrits, lus;/* nb d’octets ecrits et lus */
@@ -96,49 +118,46 @@ void mainClient(int socketEcoute, WINDOW *boite){
 
 	// Envoie un message au serveur
 	char phrase[LG_MESSAGE*sizeof(char)];
-	while (phrase!="\n")
+	while (1)
 	{
 		//fgets(phrase, sizeof(phrase), stdin);
 		strcpy(messageEnvoi, affichage(boite));
-		ecrits = write(socketEcoute, messageEnvoi, strlen(messageEnvoi));// message à TAILLE variable
-		switch(ecrits)
-		{
-			case-1 :/* une erreur ! */
-				perror("write");
-				close(socketEcoute);
-				exit(-3);
-			case 0 :/* la socket est fermée */
-				fprintf(stderr, "La socket a été fermée par le serveur !\n\n");
-				close(socketEcoute);
-				exit(-1);
-			default:/* envoi de n octets */
-			printf(" ");
+		ecrits = write(socketEcoute, messageEnvoi, strlen(messageEnvoi));
+		if (ecrits == -1) {
+			perror("write");
+			close(socketEcoute);
+			exit(-3);
+		} else if (ecrits == 0) {
+			fprintf(stderr, "La socket a été fermée par le serveur !\n\n");
+			close(socketEcoute);
+			exit(-1);
 		}
 
-		/* Reception des données du serveur */
-		lus = read(socketEcoute, messageRecu, LG_MESSAGE*sizeof(char));/* attend un message de TAILLE fixe */
-		switch(lus)
-		{
-			case-1 :/* une erreur ! */
-				perror("read");
-				close(socketEcoute);
-				exit(-4);
-			case 0 :/* la socket est fermée */
-				fprintf(stderr, "La socket a été fermée par le serveur !\n\n");
-				close(socketEcoute);
-				exit(-1);
-			default:/* réception de n octets */
-				messageRecu[lus]='\0';
-				//printf("Message reçu du serveur : %s (%d octets)\n\n", messageRecu, lus);
-				interpretationMsg(messageRecu, messageEnvoi, l, c, boite);
-				
+		lus = read(socketEcoute, messageRecu, LG_MESSAGE-1);
+		if (lus == -1) {
+			perror("read");
+			close(socketEcoute);
+			exit(-4);
+		} else if (lus == 0) {
+			fprintf(stderr, "La socket a été fermée par le serveur !\n\n");
+			close(socketEcoute);
+			exit(-1);
+		} else {
+			messageRecu[lus]='\0';
+			interpretationMsg(messageRecu, messageEnvoi, l, c, boite);
 		}
+
 	}
 	close(socketEcoute);
 	endwin();
-	free(boite);
 }
 
+/**
+ * Crée une nouvelle socket d'écoute pour le client.
+ * @return L'identifiant de la nouvelle socket d'écoute.
+ * @note Cette fonction utilise le protocole TCP par défaut.
+ * @ingroup fonct_duClient
+*/
 int createSocket() {
     int socketEcoute = socket(PF_INET, SOCK_STREAM, 0);// 0 indique que l’on utilisera le protocole par défaut associé à SOCK_STREAM soit TCP
     if (socketEcoute == -1) {
@@ -149,6 +168,14 @@ int createSocket() {
     return socketEcoute;
 }
 
+/**
+ * Établit une connexion vers un serveur distant en utilisant une socket TCP.
+ * @param socketEcoute Le descripteur de la socket à utiliser pour la connexion.
+ * @param port Le port à utiliser pour la connexion.
+ * @param ip L'adresse IP du serveur distant.
+ * @return Cette fonction ne retourne rien.
+ * @ingroup fonct_duClient
+*/
 void bindSocket(int socketEcoute, int port, char* ip){
 	// les info serveur
 	struct sockaddr_in serv_addr;
@@ -166,6 +193,14 @@ void bindSocket(int socketEcoute, int port, char* ip){
 
 }
 
+/**
+ * @brief Interprète les messages reçus du serveur et affiche les messages appropriés ou la matrice de pixels
+ * @param messageRecu le message reçu du serveur
+ * @param messageEnvoi le message envoyé au serveur
+ * @param l la hauteur de la matrice
+ * @param c la largeur de la matrice
+ * @ingroup fonct_duClient
+*/
 void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, WINDOW *boite){
 	if(strcmp(messageRecu,"00 OK\0")==0){
         mvprintw(LINES - 1, 0, "Validé");
@@ -175,7 +210,7 @@ void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE
 		mvprintw(LINES - 1, 0, "Pixel en dehors de la matrice");
 	} else if(strcmp(messageRecu,"12 Bad Color\0")==0){
 		mvprintw(LINES - 1, 0, "Mauvaise Couleur");
-	} else if(strcmp(messageRecu,"12 Bad Color\0")==0){
+	} else if(strcmp(messageRecu,"20 Out Of Quota\0")==0){
 		mvprintw(LINES - 1, 0, "Vous n'avez plus de pixel, veuillez attendre");
 	}else if(strcmp(messageRecu,"99 Unknown Command\0")==0){
 		mvprintw(LINES - 1, 0, "Commande Inconue");
@@ -202,19 +237,12 @@ void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE
 	}
 }
 
-// int espace(char messageRecu[LG_MESSAGE]){
-// 	int i=0;
-// 	while (messageRecu[i]!='\0')
-// 	{
-// 		if (messageRecu[i]==' ')
-// 		{
-// 			return 0;
-// 		}
-// 		i++;
-// 	}
-// 	return 1;
-// }
-
+/**
+ * Encodes un tableau de caractères en base64.
+ * @param rgb Le tableau de caractères à encoder.
+ * @return Un pointeur vers le tableau de caractères encodé en base64, ou NULL en cas d'erreur.
+ * @ingroup fonct_duClient
+ */
 char* base64_encode(const char* rgb) {
     static const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     size_t input_length = strlen(rgb);
@@ -259,102 +287,94 @@ char* base64_encode(const char* rgb) {
     return encoded_data;
 }
 
-
-/// @brief 
-/// @param messageRecu 
-/// @param boite 
-/// @param l 
-/// @param c 
-void interpretationMatrice(char messageRecu[LG_MESSAGE], WINDOW *boite, int l, int c){
+/**
+ * @brief Décodage et affichage de la matrice d'image à partir d'une chaîne encodée en base64.
+ *
+ * @param messageRecu Chaîne encodée en base64 contenant la matrice d'image.
+ * @param boite Fenêtre de sortie.
+ * @param l Nombre de lignes de la matrice.
+ * @param c Nombre de colonnes de la matrice.
+ * @ingroup fonct_duClient
+ */
+void interpretationMatrice(const char messageRecu[LG_MESSAGE], WINDOW* boite, const int l, const int c) {
     static const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-	printw("                         %d", strlen(messageRecu));
-    size_t input_length = strlen(messageRecu);
+    // Précalculer les index de chaque caractère de la table base64_chars
+    int base64_index[256] = {0};
+    for (const char* p = base64_chars; *p != '\0'; ++p) {
+        base64_index[(unsigned char)*p] = p - base64_chars;
+    }
 
-    size_t output_length = input_length / 4 * 3;
-	
-    size_t i, j;
+    const size_t input_length = strlen(messageRecu);
+    const size_t output_length = input_length / 4 * 3;
+
     uint32_t sextet_a, sextet_b, sextet_c, sextet_d, triple;
 
-    int* tableauRGB = malloc(output_length * sizeof(int));
-    int cpt = 0;
-	
-    for (i = 0, j = 0; i < input_length;) {
-        sextet_a = (messageRecu[i] == '=') ? 0 : strchr(base64_chars, messageRecu[i]) - base64_chars;
-        sextet_b = (messageRecu[i+1] == '=') ? 0 : strchr(base64_chars, messageRecu[i+1]) - base64_chars;
-        sextet_c = (messageRecu[i+2] == '=') ? 0 : strchr(base64_chars, messageRecu[i+2]) - base64_chars;
-        sextet_d = (messageRecu[i+3] == '=') ? 0 : strchr(base64_chars, messageRecu[i+3]) - base64_chars;
+    int* const tableauRGB = malloc(output_length * sizeof(int));
+    if (tableauRGB == NULL) {
+        fprintf(stderr, "Erreur d'allocation de la mémoire\n");
+        return;
+    }
+    int* ptrRGB = tableauRGB; // Utiliser un pointeur pour parcourir le tableau
+
+    for (size_t i = 0, j = 0; i < input_length;) {
+        sextet_a = (messageRecu[i] == '=') ? 0 : base64_index[(unsigned char)messageRecu[i]];
+        sextet_b = (messageRecu[i+1] == '=') ? 0 : base64_index[(unsigned char)messageRecu[i+1]];
+        sextet_c = (messageRecu[i+2] == '=') ? 0 : base64_index[(unsigned char)messageRecu[i+2]];
+        sextet_d = (messageRecu[i+3] == '=') ? 0 : base64_index[(unsigned char)messageRecu[i+3]];
 
         triple = (sextet_a << 3 * 6)
                + (sextet_b << 2 * 6)
                + (sextet_c << 1 * 6)
                + (sextet_d << 0 * 6);
 
-        tableauRGB[cpt++] = (triple >> 2 * 8) & 0xFF;
-        tableauRGB[cpt++] = (triple >> 1 * 8) & 0xFF;
-        tableauRGB[cpt++] = (triple >> 0 * 8) & 0xFF;
+        *ptrRGB++ = (triple >> 2 * 8) & 0xFF;
+        *ptrRGB++ = (triple >> 1 * 8) & 0xFF;
+        *ptrRGB++ = (triple >> 0 * 8) & 0xFF;
 
         i += 4;
     }
 
-    // AFFICHAGE
-	//mvprintw(0, (COLS / 2) - (strlen("------Matrice Decodee-----") / 2), "------Matrice Decodee-----");
-	
-	
-	move(1,0);
-	printw("'%ld'/lignes: %d/colones: %d", output_length,l,c);
-	move(2,0);
-	int color_r = 0;
-	int color_g = 0;
-	int color_b = 0;
-	int COLOR_PIX=8;
+    //AFFICHAGE	
+    move(1, 0);
+    printw("'%ld'/lignes: %d/colone: %d", output_length, l, c);
+    move(2, 0);
+    int color_r = 0;
+    int color_g = 0;
+    int color_b = 0;
+    const int COLOR_PIX = 8;
 
-	if(has_colors())
-    {
-        if(start_color() == OK)
-        {
-            for (int lignes = 1; lignes <= l; lignes++)
-			{
-				//printw("'%d'",(lignes-1));
-				for (int i = 0; i < c*3;)
-				{
-					//printw("'%d'",tableauRGB[((lignes-1)*c*3)+i]* 1000 / 255);
-					fprintf(stderr, "indice: %d\n", i);
-					color_r = tableauRGB[((lignes-1)*c*3)+i] * 1000 / 255;
-					color_g = tableauRGB[((lignes-1)*c*3)+i+1] * 1000 / 255;
-					color_b = tableauRGB[((lignes-1)*c*3)+i+2] * 1000 / 255;
-					//printw("%d/%d/%d",color_r,color_g,color_b);
-					init_color(COLOR_PIX, color_r, color_g, color_b);
-					init_pair(1, COLOR_PIX, COLOR_RED);
-					attron(COLOR_PAIR(1));
-					printw("0");
-					refresh();
-					attroff(COLOR_PAIR(1));
-					i+=3;
-
-				}
-				move(2+lignes,0);
-			}
+    for (int lignes = 1; lignes <= l; lignes++) {
+        //printw("'%d'",(lignes-1));
+        for (int i = 0; i < c * 3;) {
+			//printw("'%d'",tableauRGB[((lignes-1)*c*3)+i]* 1000 / 255);
+			//fprintf(stderr, "indice: %d\n", i);
+			//color_r = tableauRGB[((lignes-1)*c*3)+i] * 1000 / 255;
+			//color_g = tableauRGB[((lignes-1)*c*3)+i+1] * 1000 / 255;
+			//color_b = tableauRGB[((lignes-1)*c*3)+i+2] * 1000 / 255;
+			//printw("%d/%d/%d",color_r,color_g,color_b);
+			//init_color(COLOR_PIX, color_r, color_g, color_b);
+			//init_pair(1, COLOR_WHITE, COLOR_BLACK);
+			//attron(COLOR_PAIR(1));			
+			//attroff(COLOR_PAIR(1));
+            printw("0");
+            i += 3;
         }
-        else
-        {
-            addstr("Cannot start colours\n");
-            refresh();
-        }
+        move(2 + lignes, 0);
     }
-    else
-    {
-        addstr("Not colour capable\n");
-        refresh();
-    }
-	
-	
-	
-
-	getch();
-	clear();
+    refresh();
+    getch();
+    clear();
 }
 
+/**
+ * @brief Sélectionne un mot dans une phrase en fonction de sa position.
+ *
+ * @param phrase La phrase dans laquelle chercher le mot.
+ * @param nombre La position du mot à récupérer.
+ * @param mot    Un pointeur vers l'endroit où stocker le mot.
+ * @ingroup fonct_duClient
+ */
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot){
 	int i=0, j=0, cpt=1;
 	//printf("message recu dans le selectMot: %s", phrase);
@@ -377,6 +397,12 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot){
 	mot[j]='\0';
 }
 
+/**
+ * Affiche un message de bienvenue sur la fenêtre du terminal et attend que l'utilisateur appuie sur la touche '1' ou '&' pour continuer.
+ * 
+ * @param socketEcoute Le socket sur lequel le serveur écoute les connexions entrantes.
+ * @ingroup fonct_duClient
+ */
 void affichageEntree(int socketEcoute){
 	WINDOW *boite;
 	initscr();
@@ -410,6 +436,13 @@ void affichageEntree(int socketEcoute){
 	mainClient(socketEcoute, boite);
 }
 
+/**
+ * Cette fonction affiche un menu dans une fenêtre et attend que l'utilisateur sélectionne une option. 
+ * 
+ * @param boite un pointeur vers la fenêtre dans laquelle afficher le menu.
+ * @return un pointeur vers une chaîne de caractères contenant le message à envoyer au serveur en fonction de l'option sélectionnée par l'utilisateur.
+ * @ingroup fonct_duClient
+ */
 char *affichage(WINDOW *boite){
 	
 
@@ -492,8 +525,4 @@ char *affichage(WINDOW *boite){
 		return NULL; 
 	}
 	
-}
-
-void affichageRecu(char messageRecu[LG_MESSAGE]){
-
 }

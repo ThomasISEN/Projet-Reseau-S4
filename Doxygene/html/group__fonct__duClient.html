@@ -1,0 +1,439 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.17"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>PIXEL WAR: Fonctions du client</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">PIXEL WAR
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Généré par Doxygen 1.8.17 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Recherche');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Recherche');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#func-members">Fonctions</a>  </div>
+  <div class="headertitle">
+<div class="title">Fonctions du client</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Fonctions qui permettent de faire fonctionner le client.  
+<a href="#details">Plus de détails...</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Fonctions</h2></td></tr>
+<tr class="memitem:ga209a74989028a1c4a879fd992c8cbd7a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga209a74989028a1c4a879fd992c8cbd7a">mainClient</a> (int socketEcoute, WINDOW *boite)</td></tr>
+<tr class="separator:ga209a74989028a1c4a879fd992c8cbd7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5ece610682861d1713357ebe3d61997f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga5ece610682861d1713357ebe3d61997f">createSocket</a> ()</td></tr>
+<tr class="memdesc:ga5ece610682861d1713357ebe3d61997f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Crée une nouvelle socket TCP/IP.  <a href="group__fonct__duClient.html#ga5ece610682861d1713357ebe3d61997f">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga5ece610682861d1713357ebe3d61997f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gace91f0bb29e522cc1abb796e6a9ca317"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#gace91f0bb29e522cc1abb796e6a9ca317">bindSocket</a> (int socketEcoute, int port, char *ip)</td></tr>
+<tr class="separator:gace91f0bb29e522cc1abb796e6a9ca317"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga497ea4221dde3e453c115703bafae845"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga497ea4221dde3e453c115703bafae845">interpretationMsg</a> (char messageRecu[LG_MESSAGE], char messageEnvoi[LG_MESSAGE], int l, int c, WINDOW *boite)</td></tr>
+<tr class="memdesc:ga497ea4221dde3e453c115703bafae845"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interprète les messages reçus du serveur et affiche les messages appropriés ou la matrice de pixels.  <a href="group__fonct__duClient.html#ga497ea4221dde3e453c115703bafae845">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga497ea4221dde3e453c115703bafae845"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga50a18c0e0633f91c69780f6401655abe"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga50a18c0e0633f91c69780f6401655abe">base64_encode</a> (const char *rgb)</td></tr>
+<tr class="separator:ga50a18c0e0633f91c69780f6401655abe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4c8e89cdea3dddb6ae1431c996a04f98"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga4c8e89cdea3dddb6ae1431c996a04f98">interpretationMatrice</a> (char messageRecu[LG_MESSAGE], WINDOW *boite, int l, int c)</td></tr>
+<tr class="memdesc:ga4c8e89cdea3dddb6ae1431c996a04f98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Décodage et affichage de la matrice d'image à partir d'une chaîne encodée en base64.  <a href="group__fonct__duClient.html#ga4c8e89cdea3dddb6ae1431c996a04f98">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga4c8e89cdea3dddb6ae1431c996a04f98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2f0ac9b0cd9c4a7749ee795760831c38"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga2f0ac9b0cd9c4a7749ee795760831c38">selectMot</a> (char phrase[LG_MESSAGE *sizeof(char)], int nombre, char *mot)</td></tr>
+<tr class="memdesc:ga2f0ac9b0cd9c4a7749ee795760831c38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sélectionne un mot dans une phrase en fonction de sa position.  <a href="group__fonct__duClient.html#ga2f0ac9b0cd9c4a7749ee795760831c38">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga2f0ac9b0cd9c4a7749ee795760831c38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga616ffd3938004612b22658f1d8d4941e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga616ffd3938004612b22658f1d8d4941e">affichageEntree</a> (int socketEcoute)</td></tr>
+<tr class="separator:ga616ffd3938004612b22658f1d8d4941e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga78758eb11f265279dda6de0c16233b4b"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga78758eb11f265279dda6de0c16233b4b">affichage</a> (WINDOW *boite)</td></tr>
+<tr class="separator:ga78758eb11f265279dda6de0c16233b4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Description détaillée</h2>
+<p>Fonctions qui permettent de faire fonctionner le client. </p>
+<h2 class="groupheader">Documentation des fonctions</h2>
+<a id="ga78758eb11f265279dda6de0c16233b4b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga78758eb11f265279dda6de0c16233b4b">&#9670;&nbsp;</a></span>affichage()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char * affichage </td>
+          <td>(</td>
+          <td class="paramtype">WINDOW *&#160;</td>
+          <td class="paramname"><em>boite</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Cette fonction affiche un menu dans une fenêtre et attend que l'utilisateur sélectionne une option.</p>
+<dl class="params"><dt>Paramètres</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">boite</td><td>un pointeur vers la fenêtre dans laquelle afficher le menu. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Renvoie</dt><dd>un pointeur vers une chaîne de caractères contenant le message à envoyer au serveur en fonction de l'option sélectionnée par l'utilisateur. </dd></dl>
+
+</div>
+</div>
+<a id="ga616ffd3938004612b22658f1d8d4941e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga616ffd3938004612b22658f1d8d4941e">&#9670;&nbsp;</a></span>affichageEntree()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void affichageEntree </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>socketEcoute</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Affiche un message de bienvenue sur la fenêtre du terminal et attend que l'utilisateur appuie sur la touche '1' ou '&amp;' pour continuer.</p>
+<dl class="params"><dt>Paramètres</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">socketEcoute</td><td>Le socket sur lequel le serveur écoute les connexions entrantes. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga50a18c0e0633f91c69780f6401655abe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga50a18c0e0633f91c69780f6401655abe">&#9670;&nbsp;</a></span>base64_encode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char * base64_encode </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>rgb</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Encodes un tableau de caractères en base64. </p><dl class="params"><dt>Paramètres</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rgb</td><td>Le tableau de caractères à encoder. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Renvoie</dt><dd>Un pointeur vers le tableau de caractères encodé en base64, ou NULL en cas d'erreur. </dd></dl>
+
+</div>
+</div>
+<a id="gace91f0bb29e522cc1abb796e6a9ca317"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gace91f0bb29e522cc1abb796e6a9ca317">&#9670;&nbsp;</a></span>bindSocket()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void bindSocket </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>socketEcoute</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>port</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>ip</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Établit une connexion vers un serveur distant en utilisant une socket TCP. </p><dl class="params"><dt>Paramètres</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">socketEcoute</td><td>Le descripteur de la socket à utiliser pour la connexion. </td></tr>
+    <tr><td class="paramname">port</td><td>Le port à utiliser pour la connexion. </td></tr>
+    <tr><td class="paramname">ip</td><td>L'adresse IP du serveur distant. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Renvoie</dt><dd>Cette fonction ne retourne rien. </dd></dl>
+
+</div>
+</div>
+<a id="ga5ece610682861d1713357ebe3d61997f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5ece610682861d1713357ebe3d61997f">&#9670;&nbsp;</a></span>createSocket()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int createSocket </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Crée une nouvelle socket TCP/IP. </p>
+<p>Crée une nouvelle socket d'écoute pour le client. </p><dl class="section return"><dt>Renvoie</dt><dd>L'identifiant de la nouvelle socket d'écoute. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Cette fonction utilise le protocole TCP par défaut.</dd></dl>
+<dl class="section return"><dt>Renvoie</dt><dd>Retourne l'identifiant de la socket créée. </dd></dl>
+
+</div>
+</div>
+<a id="ga4c8e89cdea3dddb6ae1431c996a04f98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4c8e89cdea3dddb6ae1431c996a04f98">&#9670;&nbsp;</a></span>interpretationMatrice()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void interpretationMatrice </td>
+          <td>(</td>
+          <td class="paramtype">char&#160;</td>
+          <td class="paramname"><em>messageRecu</em>[LG_MESSAGE], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">WINDOW *&#160;</td>
+          <td class="paramname"><em>boite</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>c</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Décodage et affichage de la matrice d'image à partir d'une chaîne encodée en base64. </p>
+<dl class="params"><dt>Paramètres</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">messageRecu</td><td>Chaîne encodée en base64 contenant la matrice d'image. </td></tr>
+    <tr><td class="paramname">boite</td><td>Fenêtre de sortie. </td></tr>
+    <tr><td class="paramname">l</td><td>Nombre de lignes de la matrice. </td></tr>
+    <tr><td class="paramname">c</td><td>Nombre de colonnes de la matrice. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga497ea4221dde3e453c115703bafae845"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga497ea4221dde3e453c115703bafae845">&#9670;&nbsp;</a></span>interpretationMsg()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void interpretationMsg </td>
+          <td>(</td>
+          <td class="paramtype">char&#160;</td>
+          <td class="paramname"><em>messageRecu</em>[LG_MESSAGE], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char&#160;</td>
+          <td class="paramname"><em>messageEnvoi</em>[LG_MESSAGE], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>c</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">WINDOW *&#160;</td>
+          <td class="paramname"><em>boite</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Interprète les messages reçus du serveur et affiche les messages appropriés ou la matrice de pixels. </p>
+<dl class="params"><dt>Paramètres</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">messageRecu</td><td>le message reçu du serveur </td></tr>
+    <tr><td class="paramname">messageEnvoi</td><td>le message envoyé au serveur </td></tr>
+    <tr><td class="paramname">l</td><td>la hauteur de la matrice </td></tr>
+    <tr><td class="paramname">c</td><td>la largeur de la matrice </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga209a74989028a1c4a879fd992c8cbd7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga209a74989028a1c4a879fd992c8cbd7a">&#9670;&nbsp;</a></span>mainClient()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mainClient </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>socketEcoute</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">WINDOW *&#160;</td>
+          <td class="paramname"><em>boite</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Fonction principale du client. Initialise et gère les communications avec le serveur. </p><dl class="params"><dt>Paramètres</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">socketEcoute</td><td>La socket d'écoute utilisée pour la communication avec le serveur. </td></tr>
+    <tr><td class="paramname">boite</td><td>La fenêtre d'affichage du jeu. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Renvoie</dt><dd>Cette fonction ne retourne rien. </dd></dl>
+
+</div>
+</div>
+<a id="ga2f0ac9b0cd9c4a7749ee795760831c38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2f0ac9b0cd9c4a7749ee795760831c38">&#9670;&nbsp;</a></span>selectMot()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void selectMot </td>
+          <td>(</td>
+          <td class="paramtype">char&#160;</td>
+          <td class="paramname"><em>phrase</em>[LG_MESSAGE *sizeof(char)], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nombre</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>mot</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sélectionne un mot dans une phrase en fonction de sa position. </p>
+<dl class="params"><dt>Paramètres</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">phrase</td><td>La phrase dans laquelle chercher le mot. </td></tr>
+    <tr><td class="paramname">nombre</td><td>La position du mot à récupérer. </td></tr>
+    <tr><td class="paramname">mot</td><td>Un pointeur vers l'endroit où stocker le mot. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Généré par &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.17
+</small></address>
+</body>
+</html>
