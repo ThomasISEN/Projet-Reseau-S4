@@ -24,25 +24,22 @@
 
 
 #define LG_MESSAGE 1024
-#define PORT IPPORT_USERRESERVED // = 5000
 
 
-void mainClient(int socketEcoute, WINDOW *boite);
+void mainClient(int socketEcoute);
 int createSocket();
 void bindSocket(int socketEcoute, int port, char* ip);
-void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, WINDOW *boite);
-//int espace(char messageRecu[LG_MESSAGE]);
-void interpretationMatrice(const char messageRecu[LG_MESSAGE], WINDOW* boite, const int l, const int c);
+void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, int* matrice);
+void interpretationMatrice(const char messageRecu[LG_MESSAGE], const int l, const int c, int *matrice);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot);
-//void afficheMatrice();
-char *affichage(WINDOW *boite);
+char *affichage();
 void affichageEntree(int socketEcoute);
 char* base64_encode(const char* rgb);
+void afficherCouleurs(int* tableauRGB, const int l, const int c);
 
 int main(int argc, char *argv[]){
 
 	int socketEcoute;
-
 	//Interpretation de la commande du lancement serveur
 	int opt;
     int port=0;
@@ -88,12 +85,11 @@ int main(int argc, char *argv[]){
 /**
  * Fonction principale du client. Initialise et gère les communications avec le serveur.
  * @param socketEcoute La socket d'écoute utilisée pour la communication avec le serveur.
- * @param boite La fenêtre d'affichage du jeu.
  * @return Cette fonction ne retourne rien.
  * @ingroup fonct_duClient
 */
-void mainClient(int socketEcoute, WINDOW *boite){
-
+void mainClient(int socketEcoute){
+	initscr();
 	int ecrits, lus;/* nb d’octets ecrits et lus */
 	char messageEnvoi[LG_MESSAGE];/* le message de la couche Application ! */
 	char messageRecu[LG_MESSAGE];/* le message de la couche Application ! */
@@ -105,23 +101,45 @@ void mainClient(int socketEcoute, WINDOW *boite){
 	char* limit="/getSize";
 	strcpy(messageEnvoi, limit);
 	ecrits = write(socketEcoute, messageEnvoi, strlen(messageEnvoi));
+
+	int l=0,c=0;
 	lus = read(socketEcoute, messageRecu, LG_MESSAGE*sizeof(char));
+	if (lus == -1) {
+		perror("read");
+		close(socketEcoute);
+		exit(-4);
+	} else if (lus == 0) {
+		fprintf(stderr, "La socket a été fermée par le serveur !\n\n");
+		close(socketEcoute);
+		exit(-1);
+	} else {
+		messageRecu[lus]='\0';
+		char strL[LG_MESSAGE];
+		char strC[LG_MESSAGE];
+		selectMot(messageRecu, 1, strC);
+		selectMot(messageRecu, 2, strL);
+		l=atoi(strL);
+		c=atoi(strC);
+	}
 
-	char strL[LG_MESSAGE];
-	char strC[LG_MESSAGE];
-	selectMot(messageRecu, 1, strC);
-	selectMot(messageRecu, 2, strL);
-	int l=atoi(strL);
-	int c=atoi(strC);
-	//printf("taille:%dx%d\n", l,c);
-
+	int matrice[l*c*3];
+	for (int i = 0; i < l*c*3; i++) {
+		matrice[i] = 0; // initialise chaque élément à 0
+	}
+		
+	//afficherCouleurs(matrice,l,c);
 
 	// Envoie un message au serveur
 	char phrase[LG_MESSAGE*sizeof(char)];
 	while (1)
 	{
 		//fgets(phrase, sizeof(phrase), stdin);
-		strcpy(messageEnvoi, affichage(boite));
+		strcpy(messageEnvoi, affichage());
+		if (strcmp(messageEnvoi, "")==0)
+		{
+			break;
+		}
+		
 		ecrits = write(socketEcoute, messageEnvoi, strlen(messageEnvoi));
 		if (ecrits == -1) {
 			perror("write");
@@ -144,7 +162,7 @@ void mainClient(int socketEcoute, WINDOW *boite){
 			exit(-1);
 		} else {
 			messageRecu[lus]='\0';
-			interpretationMsg(messageRecu, messageEnvoi, l, c, boite);
+			interpretationMsg(messageRecu, messageEnvoi, l, c, matrice);
 		}
 
 	}
@@ -201,7 +219,7 @@ void bindSocket(int socketEcoute, int port, char* ip){
  * @param c la largeur de la matrice
  * @ingroup fonct_duClient
 */
-void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, WINDOW *boite){
+void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, int *matrice){
 	if(strcmp(messageRecu,"00 OK\0")==0){
         mvprintw(LINES - 1, 0, "Validé");
 	} else if(strcmp(messageRecu,"10 Bad Command\0")==0){
@@ -231,7 +249,7 @@ void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE
 			refresh();
 		}else{
 			//printf("AFFICHAGE MATRICE\n");
-			interpretationMatrice(messageRecu, boite, l, c);
+			interpretationMatrice(messageRecu, l, c, matrice);
 		}
 		
 	}
@@ -291,12 +309,11 @@ char* base64_encode(const char* rgb) {
  * @brief Décodage et affichage de la matrice d'image à partir d'une chaîne encodée en base64.
  *
  * @param messageRecu Chaîne encodée en base64 contenant la matrice d'image.
- * @param boite Fenêtre de sortie.
  * @param l Nombre de lignes de la matrice.
  * @param c Nombre de colonnes de la matrice.
  * @ingroup fonct_duClient
  */
-void interpretationMatrice(const char messageRecu[LG_MESSAGE], WINDOW* boite, const int l, const int c) {
+void interpretationMatrice(const char messageRecu[LG_MESSAGE], const int l, const int c, int *matrice) {
     static const char base64_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     // Précalculer les index de chaque caractère de la table base64_chars
@@ -310,12 +327,10 @@ void interpretationMatrice(const char messageRecu[LG_MESSAGE], WINDOW* boite, co
 
     uint32_t sextet_a, sextet_b, sextet_c, sextet_d, triple;
 
-    int* const tableauRGB = malloc(output_length * sizeof(int));
-    if (tableauRGB == NULL) {
+    if (matrice == NULL) {
         fprintf(stderr, "Erreur d'allocation de la mémoire\n");
-        return;
     }
-    int* ptrRGB = tableauRGB; // Utiliser un pointeur pour parcourir le tableau
+    int* ptrRGB = matrice; // Utiliser un pointeur pour parcourir le tableau
 
     for (size_t i = 0, j = 0; i < input_length;) {
         sextet_a = (messageRecu[i] == '=') ? 0 : base64_index[(unsigned char)messageRecu[i]];
@@ -334,34 +349,51 @@ void interpretationMatrice(const char messageRecu[LG_MESSAGE], WINDOW* boite, co
 
         i += 4;
     }
+	//AFFICHAGE
+	afficherCouleurs(matrice,l,c);
+	printw("BON1");
 
-    //AFFICHAGE	
-    move(1, 0);
-    printw("'%ld'/lignes: %d/colone: %d", output_length, l, c);
-    move(2, 0);
-    int color_r = 0;
-    int color_g = 0;
-    int color_b = 0;
-    const int COLOR_PIX = 8;
+}
 
-    for (int lignes = 1; lignes <= l; lignes++) {
-        //printw("'%d'",(lignes-1));
-        for (int i = 0; i < c * 3;) {
-			//printw("'%d'",tableauRGB[((lignes-1)*c*3)+i]* 1000 / 255);
-			//fprintf(stderr, "indice: %d\n", i);
-			//color_r = tableauRGB[((lignes-1)*c*3)+i] * 1000 / 255;
-			//color_g = tableauRGB[((lignes-1)*c*3)+i+1] * 1000 / 255;
-			//color_b = tableauRGB[((lignes-1)*c*3)+i+2] * 1000 / 255;
-			//printw("%d/%d/%d",color_r,color_g,color_b);
-			//init_color(COLOR_PIX, color_r, color_g, color_b);
-			//init_pair(1, COLOR_WHITE, COLOR_BLACK);
-			//attron(COLOR_PAIR(1));			
-			//attroff(COLOR_PAIR(1));
-            printw("0");
-            i += 3;
-        }
-        move(2 + lignes, 0);
+void afficherCouleurs(int* tableauRGB, const int l, const int c) {
+	if (!has_colors()) {
+        printw("Erreur : Le terminal ne supporte pas les couleurs");
+        return;
     }
+
+    // Initialiser les couleurs
+    start_color();
+    //use_default_colors();
+	init_pair(1, COLOR_WHITE, COLOR_BLACK);
+	attron(COLOR_PAIR(1));
+
+
+    move(1, 0);
+    printw("'%d'/lignes: %d/colonne: %d", l * c, l, c);
+    move(2, 0);
+	attroff(COLOR_PAIR(1));
+    for (int lignes = 0; lignes < l; lignes++) {
+        for (int colonnes = 0; colonnes < c*3; ) {
+            int indice = (lignes * c + colonnes);
+            int color_r = tableauRGB[indice] * 1000 / 255;
+            int color_g = tableauRGB[indice + 1] * 1000 / 255;
+            int color_b = tableauRGB[indice + 2] * 1000 / 255;
+			int customColor = (lignes*c)+colonnes+2;
+            init_color(customColor, color_r, color_g, color_b);
+            init_pair(customColor+2, COLOR_WHITE, customColor);
+            attron(COLOR_PAIR(customColor+2));
+			printw(" ");
+            //printw("(%d,%d,%d)",tableauRGB[indice],tableauRGB[indice+1],tableauRGB[indice+2]);
+            attroff(COLOR_PAIR(customColor+2));
+			colonnes+=3;
+        }
+		attron(COLOR_PAIR(1));
+        move(3 + lignes, 0);
+		attroff(COLOR_PAIR(1));
+    }
+	attron(COLOR_PAIR(1));
+	attroff(COLOR_PAIR(1));
+	//use_default_colors();
     refresh();
     getch();
     clear();
@@ -403,21 +435,22 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot){
  * @param socketEcoute Le socket sur lequel le serveur écoute les connexions entrantes.
  * @ingroup fonct_duClient
  */
-void affichageEntree(int socketEcoute){
-	WINDOW *boite;
-	initscr();
-	char *msgA[] = {
-		"########  #### ##     ## ######## ##       ##      ##    ###    ########  ",
-		"##     ##  ##   ##   ##  ##       ##       ##  ##  ##   ## ##   ##     ## ",
-		"########   ##     ###    ######   ##       ##  ##  ## ##     ## ########  ",
-		"##         ##    ## ##   ##       ##       ##  ##  ## ######### ##   ##   ",
-		"##         ##   ##   ##  ##       ##       ##  ##  ## ##     ## ##    ##  ",
-		"##        #### ##     ## ######## ########  ###  ###  ##     ## ##     ## ",
-		"appuyer sur 1 pour aller au menu"
-	};
-	int taille= strlen(msgA[1]);
+void affichageEntree(int socketEcoute) {
+    initscr();
+    noecho();
+    keypad(stdscr, TRUE);
 
-	clear();    // Efface la fenêtre (donc l'ancien message)
+    const char* msgA[] = {
+        "########  #### ##     ## ######## ##       ##      ##    ###    ########  ",
+        "##     ##  ##   ##   ##  ##       ##       ##  ##  ##   ## ##   ##     ## ",
+        "########   ##     ###    ######   ##       ##  ##  ## ##     ## ########  ",
+        "##         ##    ## ##   ##       ##       ##  ##  ## ######### ##   ##   ",
+        "##         ##   ##   ##  ##       ##       ##  ##  ## ##     ## ##    ##  ",
+        "##        #### ##     ## ######## ########  ###  ###  ##     ## ##     ## ",
+        "appuyer sur 1 pour aller au menu"
+    };
+
+    int taille = strlen(msgA[1]);
 	mvprintw((LINES/2)-2, (COLS / 2) - (taille / 2), msgA[0]);
 	mvprintw((LINES/2)-1, (COLS / 2) - (taille / 2), msgA[1]);
 	mvprintw((LINES/2), (COLS / 2) - (taille / 2), msgA[2]);
@@ -425,104 +458,113 @@ void affichageEntree(int socketEcoute){
 	mvprintw((LINES/2)+2, (COLS / 2) - (taille / 2), msgA[4]);
 	mvprintw((LINES/2)+3, (COLS / 2) - (taille / 2), msgA[5]);
 	mvprintw((LINES)-2, (COLS/2) - (strlen(msgA[6])/2), msgA[6]);
-	refresh();
+    refresh();
 
-	noecho();
-    int key = getch(); // attendre l'appui d'une touche
-	while (key != '1' && key != '&'){
-		key = getch();
-	}
+    int key;
+    while ((key = getch()) != '1' && key != '&') {}
 	clear();
-	mainClient(socketEcoute, boite);
+    endwin();
+    mainClient(socketEcoute);
 }
+
 
 /**
  * Cette fonction affiche un menu dans une fenêtre et attend que l'utilisateur sélectionne une option. 
  * 
- * @param boite un pointeur vers la fenêtre dans laquelle afficher le menu.
  * @return un pointeur vers une chaîne de caractères contenant le message à envoyer au serveur en fonction de l'option sélectionnée par l'utilisateur.
  * @ingroup fonct_duClient
  */
-char *affichage(WINDOW *boite){
-	
+char *affichage(){
+    initscr();
 
-	char *msgM[] = {
-		"a. Placer un pixel",
-		"z. Taille de la matrice",
-		"e. Limite de pixel par minute",
-		"r. Version du jeu",
-		"t. Temps d'attente avant recharge",
-		"y. Afficher la matrice",
-		"q. Quitter",
-		"Appuyer sur le chiffre correspondant pour sélectionner une option"
-	};
-	// Afficher les options du menu
-	mvprintw(LINES/2 - 3, (COLS/2) - (strlen(msgM[0])/2), msgM[0]);
-	mvprintw(LINES/2 - 2, (COLS/2) - (strlen(msgM[1])/2), msgM[1]);
-	mvprintw(LINES/2 - 1, (COLS/2) - (strlen(msgM[2])/2), msgM[2]);
-	mvprintw(LINES/2, (COLS/2) - (strlen(msgM[3])/2), msgM[3]);
-	mvprintw(LINES/2 + 1, (COLS/2) - (strlen(msgM[4])/2), msgM[4]);
-	mvprintw(LINES/2 + 2, (COLS/2) - (strlen(msgM[5])/2), msgM[5]);
-	mvprintw(LINES/2 + 3, (COLS/2) - (strlen(msgM[6])/2), msgM[6]);
+    // Définition des options du menu
+    char *msgM[] = {
+        "a. Placer un pixel",
+        "z. Taille de la matrice",
+        "e. Limite de pixel par minute",
+        "r. Version du jeu",
+        "t. Temps d'attente avant recharge",
+        "y. Afficher la matrice",
+        "q. Quitter",
+        "Appuyer sur le chiffre correspondant pour sélectionner une option"
+    };
 
-	// Afficher le message pour sélectionner une option
-	mvprintw((LINES)-2, (COLS/2) - (strlen(msgM[7])/2), msgM[7]);
-	refresh(); // rafraîchir l'affichage
+    // Calcul des coordonnées du centre de l'écran
+    int centerY = LINES / 2;
+    int centerX = COLS / 2;
 
-	move(COLS - 1, 0);
-	int key=getch();
-	while (key != 'a' && key != 'z' && key != 'e' && key != 'r' && key != 't' && key != 'y' && key != 'q')
-	{
-		key=getch();
-	}
-	if (key == 'a')
-	{
-		/* SetPixel */
-		echo();
-		clear();
-		char position[50];
-		getnstr(position, 50);
-		char couleur[50];
-		getnstr(couleur, 50);
-		strcpy(couleur,base64_encode(couleur));
-		
-		char *messageFinal = malloc(100 * sizeof(char)); // allocation de la mémoire
-		sprintf(messageFinal, "/setPixel %s %s", position, couleur);
-		clear();
-		printw("le msg: %s", messageFinal);
-		noecho();
-		return messageFinal;
+    // Afficher les options du menu
+    for(int i=0; i<7; i++){
+        mvprintw(centerY-3+i, centerX-(strlen(msgM[i])/2), msgM[i]);
+    }
 
-	}else if (key == 'z')
-	{
-		/* getSize */
-		clear();
-		return "/getSize\0";
-	}else if (key == 'e')
-	{
-		/* getLimits */
-		clear();
-		return "/getLimits\0";
-	}else if (key == 'r')
-	{
-		/* getVersion */
-		clear();
-		return "/getVersion\0";
-	}else if (key == 't')
-	{
-		/* getWaitTime */
-		clear();
-		return "/getWaitTime\0";
-	}else if (key == 'y')
-	{
-		/* getWaitTime */
-		clear();
-		return "/getMatrix\0";
-	}else if (key == 'q')
-	{
-		endwin();
-		free(boite);
-		return NULL; 
-	}
-	
+    // Afficher le message pour sélectionner une option
+    mvprintw(LINES-2, centerX-(strlen(msgM[7])/2), msgM[7]);
+
+    refresh(); // Rafraîchir l'affichage
+
+    // Boucle de saisie de l'option sélectionnée
+    int key;
+    while (1){
+        key = getch();
+        if(key == 'a' || key == 'z' || key == 'e' || key == 'r' || key == 't' || key == 'y' || key == 'q'){
+            break;
+        }
+    }
+
+    char *messageFinal = NULL;
+    switch(key){
+        case 'a':
+            /* SetPixel */
+            echo();
+            clear();
+            char position[50];
+            getnstr(position, 50);
+            char couleur[50];
+            getnstr(couleur, 50);
+            strcpy(couleur,base64_encode(couleur));
+            messageFinal = malloc(100 * sizeof(char));
+            sprintf(messageFinal, "/setPixel %s %s", position, couleur);
+            clear();
+            printw("le msg: %s", messageFinal);
+            noecho();
+            break;
+
+        case 'z':
+            /* getSize */
+            clear();
+            messageFinal = "/getSize";
+            break;
+
+        case 'e':
+            /* getLimits */
+            clear();
+            messageFinal = "/getLimits";
+            break;
+
+        case 'r':
+            /* getVersion */
+            clear();
+            messageFinal = "/getVersion";
+            break;
+
+        case 't':
+            /* getWaitTime */
+            clear();
+            messageFinal = "/getWaitTime";
+            break;
+
+        case 'y':
+            /* getMatrix */
+            clear();
+            messageFinal = "/getMatrix";
+            break;
+
+        case 'q':
+            clear();
+			messageFinal = "";
+            break;
+    }
+
+    return messageFinal;
 }

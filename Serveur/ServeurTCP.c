@@ -31,7 +31,6 @@
  */
 
 #define LG_MESSAGE 1024
-#define MAX_PIXEL 1
 #define MAX_CLIENT 10
 
 /**
@@ -66,9 +65,7 @@ char *getSize(int l, int c);
 char *getLimits(int l, int c,int maxTempsAttente);
 char *getVersion();
 char *getWaitTime(CLIENT *liste, int i);
-void stripFunc(char phrase[LG_MESSAGE*sizeof(char)]);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot);
-void afficheMatrice(CASE *matrice);
 int createSocket();
 void bindSocket(int socketEcoute, int port);
 void listenSocket(int socketEcoute);
@@ -134,9 +131,6 @@ int main(int argc, char *argv[]) {
     {
         maxPixel=10;
     }
-    
-    
-    
 
     // Création des sockets
     CASE matrice[l*c];
