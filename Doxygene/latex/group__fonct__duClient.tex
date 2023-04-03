@@ -8,23 +8,25 @@ Fonctions qui permettent de faire fonctionner le client.
 \doxysubsection*{Fonctions}
 \begin{DoxyCompactItemize}
 \item 
-void \mbox{\hyperlink{group__fonct__duClient_ga209a74989028a1c4a879fd992c8cbd7a}{main\+Client}} (int socket\+Ecoute, W\+I\+N\+D\+OW $\ast$boite)
+void \mbox{\hyperlink{group__fonct__duClient_ga3d9d623599e4888955b8ce690c5eb85e}{main\+Client}} (int socket\+Ecoute)
 \item 
 int \mbox{\hyperlink{group__fonct__duClient_ga5ece610682861d1713357ebe3d61997f}{create\+Socket}} ()
 \begin{DoxyCompactList}\small\item\em Crée une nouvelle socket T\+C\+P/\+IP. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{group__fonct__duClient_gace91f0bb29e522cc1abb796e6a9ca317}{bind\+Socket}} (int socket\+Ecoute, int port, char $\ast$ip)
 \item 
-void \mbox{\hyperlink{group__fonct__duClient_ga497ea4221dde3e453c115703bafae845}{interpretation\+Msg}} (char message\+Recu\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE\mbox{]}, char message\+Envoi\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE\mbox{]}, int l, int c, W\+I\+N\+D\+OW $\ast$boite)
+void \mbox{\hyperlink{group__fonct__duClient_ga8ce99e02cbfdc71bf27365ccaedd76fd}{interpretation\+Msg}} (char message\+Recu\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE\mbox{]}, char message\+Envoi\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE\mbox{]}, int l, int c, int $\ast$matrice)
 \begin{DoxyCompactList}\small\item\em Interprète les messages reçus du serveur et affiche les messages appropriés ou la matrice de pixels. \end{DoxyCompactList}\item 
 char $\ast$ \mbox{\hyperlink{group__fonct__duClient_ga50a18c0e0633f91c69780f6401655abe}{base64\+\_\+encode}} (const char $\ast$rgb)
 \item 
-void \mbox{\hyperlink{group__fonct__duClient_ga4c8e89cdea3dddb6ae1431c996a04f98}{interpretation\+Matrice}} (char message\+Recu\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE\mbox{]}, W\+I\+N\+D\+OW $\ast$boite, int l, int c)
+void \mbox{\hyperlink{group__fonct__duClient_gabcddeb9c480f8ebff0f998807c9beb0f}{interpretation\+Matrice}} (const char message\+Recu\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE\mbox{]}, const int l, const int c, int $\ast$matrice)
 \begin{DoxyCompactList}\small\item\em Décodage et affichage de la matrice d\textquotesingle{}image à partir d\textquotesingle{}une chaîne encodée en base64. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{group__fonct__duClient_gae141b8794f7c044cecb81d452acabc29}{afficher\+Couleurs}} (int $\ast$tableau\+R\+GB, const int l, const int c)
+\begin{DoxyCompactList}\small\item\em Affiche la matrice de jeu en couleur. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{group__fonct__duClient_ga2f0ac9b0cd9c4a7749ee795760831c38}{select\+Mot}} (char phrase\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE $\ast$sizeof(char)\mbox{]}, int nombre, char $\ast$mot)
 \begin{DoxyCompactList}\small\item\em Sélectionne un mot dans une phrase en fonction de sa position. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{group__fonct__duClient_ga616ffd3938004612b22658f1d8d4941e}{affichage\+Entree}} (int socket\+Ecoute)
 \item 
-char $\ast$ \mbox{\hyperlink{group__fonct__duClient_ga78758eb11f265279dda6de0c16233b4b}{affichage}} (W\+I\+N\+D\+OW $\ast$boite)
+char $\ast$ \mbox{\hyperlink{group__fonct__duClient_ga0f7c3c706985ebff2717c7baaab129ad}{affichage}} ()
 \end{DoxyCompactItemize}
 
 
@@ -34,20 +36,13 @@ Fonctions qui permettent de faire fonctionner le client.
 
 
 \doxysubsection{Documentation des fonctions}
-\mbox{\Hypertarget{group__fonct__duClient_ga78758eb11f265279dda6de0c16233b4b}\label{group__fonct__duClient_ga78758eb11f265279dda6de0c16233b4b}} 
+\mbox{\Hypertarget{group__fonct__duClient_ga0f7c3c706985ebff2717c7baaab129ad}\label{group__fonct__duClient_ga0f7c3c706985ebff2717c7baaab129ad}} 
 \index{Fonctions du client@{Fonctions du client}!affichage@{affichage}}
 \index{affichage@{affichage}!Fonctions du client@{Fonctions du client}}
 \doxysubsubsection{\texorpdfstring{affichage()}{affichage()}}
-{\footnotesize\ttfamily char $\ast$ affichage (\begin{DoxyParamCaption}\item[{W\+I\+N\+D\+OW $\ast$}]{boite }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily char $\ast$ affichage (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
-Cette fonction affiche un menu dans une fenêtre et attend que l\textquotesingle{}utilisateur sélectionne une option.
-
-
-\begin{DoxyParams}{Paramètres}
-{\em boite} & un pointeur vers la fenêtre dans laquelle afficher le menu. \\
-\hline
-\end{DoxyParams}
-\begin{DoxyReturn}{Renvoie}
+Cette fonction affiche un menu dans une fenêtre et attend que l\textquotesingle{}utilisateur sélectionne une option. \begin{DoxyReturn}{Renvoie}
 un pointeur vers une chaîne de caractères contenant le message à envoyer au serveur en fonction de l\textquotesingle{}option sélectionnée par l\textquotesingle{}utilisateur. 
 \end{DoxyReturn}
 \mbox{\Hypertarget{group__fonct__duClient_ga616ffd3938004612b22658f1d8d4941e}\label{group__fonct__duClient_ga616ffd3938004612b22658f1d8d4941e}} 
@@ -56,11 +51,28 @@ un pointeur vers une chaîne de caractères contenant le message à envoyer au s
 \doxysubsubsection{\texorpdfstring{affichageEntree()}{affichageEntree()}}
 {\footnotesize\ttfamily void affichage\+Entree (\begin{DoxyParamCaption}\item[{int}]{socket\+Ecoute }\end{DoxyParamCaption})}
 
-Affiche un message de bienvenue sur la fenêtre du terminal et attend que l\textquotesingle{}utilisateur appuie sur la touche \textquotesingle{}1\textquotesingle{} ou \textquotesingle{}\&\textquotesingle{} pour continuer.
+Affiche un message de bienvenue sur la fenêtre du terminal et attend que l\textquotesingle{}utilisateur appuie sur la touche \textquotesingle{}1\textquotesingle{} ou \textquotesingle{}\&\textquotesingle{} pour continuer. 
+\begin{DoxyParams}{Paramètres}
+{\em socket\+Ecoute} & Le socket sur lequel le serveur écoute les connexions entrantes. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{group__fonct__duClient_gae141b8794f7c044cecb81d452acabc29}\label{group__fonct__duClient_gae141b8794f7c044cecb81d452acabc29}} 
+\index{Fonctions du client@{Fonctions du client}!afficherCouleurs@{afficherCouleurs}}
+\index{afficherCouleurs@{afficherCouleurs}!Fonctions du client@{Fonctions du client}}
+\doxysubsubsection{\texorpdfstring{afficherCouleurs()}{afficherCouleurs()}}
+{\footnotesize\ttfamily void afficher\+Couleurs (\begin{DoxyParamCaption}\item[{int $\ast$}]{tableau\+R\+GB,  }\item[{const int}]{l,  }\item[{const int}]{c }\end{DoxyParamCaption})}
+
+
+
+Affiche la matrice de jeu en couleur. 
 
 
 \begin{DoxyParams}{Paramètres}
-{\em socket\+Ecoute} & Le socket sur lequel le serveur écoute les connexions entrantes. \\
+{\em matrice} & Pointeur sur la matrice de jeu \\
+\hline
+{\em l} & Nombre de lignes de la matrice. \\
+\hline
+{\em c} & Nombre de colonnes de la matrice. \\
 \hline
 \end{DoxyParams}
 \mbox{\Hypertarget{group__fonct__duClient_ga50a18c0e0633f91c69780f6401655abe}\label{group__fonct__duClient_ga50a18c0e0633f91c69780f6401655abe}} 
@@ -92,9 +104,6 @@ Un pointeur vers le tableau de caractères encodé en base64, ou N\+U\+LL en cas
 {\em ip} & L\textquotesingle{}adresse IP du serveur distant. \\
 \hline
 \end{DoxyParams}
-\begin{DoxyReturn}{Renvoie}
-Cette fonction ne retourne rien. 
-\end{DoxyReturn}
 \mbox{\Hypertarget{group__fonct__duClient_ga5ece610682861d1713357ebe3d61997f}\label{group__fonct__duClient_ga5ece610682861d1713357ebe3d61997f}} 
 \index{Fonctions du client@{Fonctions du client}!createSocket@{createSocket}}
 \index{createSocket@{createSocket}!Fonctions du client@{Fonctions du client}}
@@ -114,11 +123,11 @@ Cette fonction utilise le protocole T\+CP par défaut.
 \begin{DoxyReturn}{Renvoie}
 Retourne l\textquotesingle{}identifiant de la socket créée. 
 \end{DoxyReturn}
-\mbox{\Hypertarget{group__fonct__duClient_ga4c8e89cdea3dddb6ae1431c996a04f98}\label{group__fonct__duClient_ga4c8e89cdea3dddb6ae1431c996a04f98}} 
+\mbox{\Hypertarget{group__fonct__duClient_gabcddeb9c480f8ebff0f998807c9beb0f}\label{group__fonct__duClient_gabcddeb9c480f8ebff0f998807c9beb0f}} 
 \index{Fonctions du client@{Fonctions du client}!interpretationMatrice@{interpretationMatrice}}
 \index{interpretationMatrice@{interpretationMatrice}!Fonctions du client@{Fonctions du client}}
 \doxysubsubsection{\texorpdfstring{interpretationMatrice()}{interpretationMatrice()}}
-{\footnotesize\ttfamily void interpretation\+Matrice (\begin{DoxyParamCaption}\item[{char}]{message\+Recu\mbox{[}\+L\+G\+\_\+\+M\+E\+S\+S\+A\+G\+E\mbox{]},  }\item[{W\+I\+N\+D\+OW $\ast$}]{boite,  }\item[{int}]{l,  }\item[{int}]{c }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily void interpretation\+Matrice (\begin{DoxyParamCaption}\item[{const char}]{message\+Recu\mbox{[}\+L\+G\+\_\+\+M\+E\+S\+S\+A\+G\+E\mbox{]},  }\item[{const int}]{l,  }\item[{const int}]{c,  }\item[{int $\ast$}]{matrice }\end{DoxyParamCaption})}
 
 
 
@@ -128,18 +137,18 @@ Décodage et affichage de la matrice d\textquotesingle{}image à partir d\textqu
 \begin{DoxyParams}{Paramètres}
 {\em message\+Recu} & Chaîne encodée en base64 contenant la matrice d\textquotesingle{}image. \\
 \hline
-{\em boite} & Fenêtre de sortie. \\
-\hline
 {\em l} & Nombre de lignes de la matrice. \\
 \hline
 {\em c} & Nombre de colonnes de la matrice. \\
 \hline
+{\em matrice} & Pointeur sur la matrice de jeu \\
+\hline
 \end{DoxyParams}
-\mbox{\Hypertarget{group__fonct__duClient_ga497ea4221dde3e453c115703bafae845}\label{group__fonct__duClient_ga497ea4221dde3e453c115703bafae845}} 
+\mbox{\Hypertarget{group__fonct__duClient_ga8ce99e02cbfdc71bf27365ccaedd76fd}\label{group__fonct__duClient_ga8ce99e02cbfdc71bf27365ccaedd76fd}} 
 \index{Fonctions du client@{Fonctions du client}!interpretationMsg@{interpretationMsg}}
 \index{interpretationMsg@{interpretationMsg}!Fonctions du client@{Fonctions du client}}
 \doxysubsubsection{\texorpdfstring{interpretationMsg()}{interpretationMsg()}}
-{\footnotesize\ttfamily void interpretation\+Msg (\begin{DoxyParamCaption}\item[{char}]{message\+Recu\mbox{[}\+L\+G\+\_\+\+M\+E\+S\+S\+A\+G\+E\mbox{]},  }\item[{char}]{message\+Envoi\mbox{[}\+L\+G\+\_\+\+M\+E\+S\+S\+A\+G\+E\mbox{]},  }\item[{int}]{l,  }\item[{int}]{c,  }\item[{W\+I\+N\+D\+OW $\ast$}]{boite }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily void interpretation\+Msg (\begin{DoxyParamCaption}\item[{char}]{message\+Recu\mbox{[}\+L\+G\+\_\+\+M\+E\+S\+S\+A\+G\+E\mbox{]},  }\item[{char}]{message\+Envoi\mbox{[}\+L\+G\+\_\+\+M\+E\+S\+S\+A\+G\+E\mbox{]},  }\item[{int}]{l,  }\item[{int}]{c,  }\item[{int $\ast$}]{matrice }\end{DoxyParamCaption})}
 
 
 
@@ -155,18 +164,18 @@ Interprète les messages reçus du serveur et affiche les messages appropriés o
 \hline
 {\em c} & la largeur de la matrice \\
 \hline
+{\em matrice} & Pointeur sur la matrice de jeu \\
+\hline
 \end{DoxyParams}
-\mbox{\Hypertarget{group__fonct__duClient_ga209a74989028a1c4a879fd992c8cbd7a}\label{group__fonct__duClient_ga209a74989028a1c4a879fd992c8cbd7a}} 
+\mbox{\Hypertarget{group__fonct__duClient_ga3d9d623599e4888955b8ce690c5eb85e}\label{group__fonct__duClient_ga3d9d623599e4888955b8ce690c5eb85e}} 
 \index{Fonctions du client@{Fonctions du client}!mainClient@{mainClient}}
 \index{mainClient@{mainClient}!Fonctions du client@{Fonctions du client}}
 \doxysubsubsection{\texorpdfstring{mainClient()}{mainClient()}}
-{\footnotesize\ttfamily void main\+Client (\begin{DoxyParamCaption}\item[{int}]{socket\+Ecoute,  }\item[{W\+I\+N\+D\+OW $\ast$}]{boite }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily void main\+Client (\begin{DoxyParamCaption}\item[{int}]{socket\+Ecoute }\end{DoxyParamCaption})}
 
 Fonction principale du client. Initialise et gère les communications avec le serveur. 
 \begin{DoxyParams}{Paramètres}
 {\em socket\+Ecoute} & La socket d\textquotesingle{}écoute utilisée pour la communication avec le serveur. \\
-\hline
-{\em boite} & La fenêtre d\textquotesingle{}affichage du jeu. \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Renvoie}
