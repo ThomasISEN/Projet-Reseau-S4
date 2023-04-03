@@ -22,7 +22,6 @@
  * Fonctions qui permettent de faire fonctionner le client
  */
 
-
 #define LG_MESSAGE 1024
 
 
@@ -72,9 +71,6 @@ int main(int argc, char *argv[]){
 	socketEcoute = createSocket(); 
 	//configuration du socket
 	bindSocket(socketEcoute, port, ip);
-	printf("Connexion au serveur réussie avec succès !\n");
-
-
 	//boucle principale
 	affichageEntree(socketEcoute);
 	//mainClient(socketEcoute);
@@ -126,14 +122,11 @@ void mainClient(int socketEcoute){
 	for (int i = 0; i < l*c*3; i++) {
 		matrice[i] = 0; // initialise chaque élément à 0
 	}
-		
-	//afficherCouleurs(matrice,l,c);
 
 	// Envoie un message au serveur
 	char phrase[LG_MESSAGE*sizeof(char)];
 	while (1)
 	{
-		//fgets(phrase, sizeof(phrase), stdin);
 		strcpy(messageEnvoi, affichage());
 		if (strcmp(messageEnvoi, "")==0)
 		{
@@ -182,7 +175,6 @@ int createSocket() {
         perror("Erreur lors de la création du socket");
         exit(EXIT_FAILURE);
     }
-    printf("Socket créée avec succès ! (%d)\n", socketEcoute);
     return socketEcoute;
 }
 
@@ -191,7 +183,6 @@ int createSocket() {
  * @param socketEcoute Le descripteur de la socket à utiliser pour la connexion.
  * @param port Le port à utiliser pour la connexion.
  * @param ip L'adresse IP du serveur distant.
- * @return Cette fonction ne retourne rien.
  * @ingroup fonct_duClient
 */
 void bindSocket(int socketEcoute, int port, char* ip){
@@ -217,6 +208,7 @@ void bindSocket(int socketEcoute, int port, char* ip){
  * @param messageEnvoi le message envoyé au serveur
  * @param l la hauteur de la matrice
  * @param c la largeur de la matrice
+ * @param matrice Pointeur sur la matrice de jeu 
  * @ingroup fonct_duClient
 */
 void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE], int l, int c, int *matrice){
@@ -233,7 +225,6 @@ void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE
 	}else if(strcmp(messageRecu,"99 Unknown Command\0")==0){
 		mvprintw(LINES - 1, 0, "Commande Inconue");
 	} else{
-		//printf("le message envoyé:'%s'\n",messageEnvoi);
 
 		if (strcmp(messageEnvoi,"/getSize\0")==0){
 			mvprintw(LINES - 1, 0, "la taille de la matrice est de: %s", messageRecu);
@@ -248,7 +239,6 @@ void interpretationMsg(char messageRecu[LG_MESSAGE],char messageEnvoi[LG_MESSAGE
 			mvprintw(LINES - 1, 0, "%s secondes à attendre avant de pouvoir envoyer un nouveau pixel", messageRecu);
 			refresh();
 		}else{
-			//printf("AFFICHAGE MATRICE\n");
 			interpretationMatrice(messageRecu, l, c, matrice);
 		}
 		
@@ -307,10 +297,10 @@ char* base64_encode(const char* rgb) {
 
 /**
  * @brief Décodage et affichage de la matrice d'image à partir d'une chaîne encodée en base64.
- *
  * @param messageRecu Chaîne encodée en base64 contenant la matrice d'image.
  * @param l Nombre de lignes de la matrice.
  * @param c Nombre de colonnes de la matrice.
+ * @param matrice Pointeur sur la matrice de jeu 
  * @ingroup fonct_duClient
  */
 void interpretationMatrice(const char messageRecu[LG_MESSAGE], const int l, const int c, int *matrice) {
@@ -351,10 +341,16 @@ void interpretationMatrice(const char messageRecu[LG_MESSAGE], const int l, cons
     }
 	//AFFICHAGE
 	afficherCouleurs(matrice,l,c);
-	printw("BON1");
 
 }
 
+/**
+ * @brief Affiche la matrice de jeu en couleur 
+ * @param matrice Pointeur sur la matrice de jeu 
+ * @param l Nombre de lignes de la matrice.
+ * @param c Nombre de colonnes de la matrice.
+ * @ingroup fonct_duClient
+*/
 void afficherCouleurs(int* tableauRGB, const int l, const int c) {
 	if (!has_colors()) {
         printw("Erreur : Le terminal ne supporte pas les couleurs");
@@ -363,14 +359,11 @@ void afficherCouleurs(int* tableauRGB, const int l, const int c) {
 
     // Initialiser les couleurs
     start_color();
-    //use_default_colors();
 	init_pair(1, COLOR_WHITE, COLOR_BLACK);
 	attron(COLOR_PAIR(1));
 
 
     move(1, 0);
-    printw("'%d'/lignes: %d/colonne: %d", l * c, l, c);
-    move(2, 0);
 	attroff(COLOR_PAIR(1));
     for (int lignes = 0; lignes < l; lignes++) {
         for (int colonnes = 0; colonnes < c*3; ) {
@@ -380,7 +373,7 @@ void afficherCouleurs(int* tableauRGB, const int l, const int c) {
             int color_b = tableauRGB[indice + 2] * 1000 / 255;
 			int customColor = (lignes*c)+colonnes+2;
             init_color(customColor, color_r, color_g, color_b);
-            init_pair(customColor+2, COLOR_WHITE, customColor);
+            init_pair(customColor+2, COLOR_BLACK, customColor);
             attron(COLOR_PAIR(customColor+2));
 			printw(" ");
             //printw("(%d,%d,%d)",tableauRGB[indice],tableauRGB[indice+1],tableauRGB[indice+2]);
@@ -388,12 +381,9 @@ void afficherCouleurs(int* tableauRGB, const int l, const int c) {
 			colonnes+=3;
         }
 		attron(COLOR_PAIR(1));
-        move(3 + lignes, 0);
+        move(2 + lignes, 0);
 		attroff(COLOR_PAIR(1));
     }
-	attron(COLOR_PAIR(1));
-	attroff(COLOR_PAIR(1));
-	//use_default_colors();
     refresh();
     getch();
     clear();
@@ -401,15 +391,13 @@ void afficherCouleurs(int* tableauRGB, const int l, const int c) {
 
 /**
  * @brief Sélectionne un mot dans une phrase en fonction de sa position.
- *
  * @param phrase La phrase dans laquelle chercher le mot.
  * @param nombre La position du mot à récupérer.
- * @param mot    Un pointeur vers l'endroit où stocker le mot.
+ * @param mot Un pointeur vers l'endroit où stocker le mot.
  * @ingroup fonct_duClient
  */
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot){
 	int i=0, j=0, cpt=1;
-	//printf("message recu dans le selectMot: %s", phrase);
 	while (phrase[i]!='\n'  && phrase[i]!='\0')
 	{
 		if(phrase[i]=='x'){
@@ -418,7 +406,6 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot){
 		}
 		if (cpt==nombre)//on regarde si on est au mot que l'on veut
 		{
-			//printf("le chiffre: %c",phrase[i]);
 			mot[j]=phrase[i];
 			j++;
 			i++;
@@ -431,7 +418,6 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char *mot){
 
 /**
  * Affiche un message de bienvenue sur la fenêtre du terminal et attend que l'utilisateur appuie sur la touche '1' ou '&' pour continuer.
- * 
  * @param socketEcoute Le socket sur lequel le serveur écoute les connexions entrantes.
  * @ingroup fonct_duClient
  */
@@ -470,7 +456,6 @@ void affichageEntree(int socketEcoute) {
 
 /**
  * Cette fonction affiche un menu dans une fenêtre et attend que l'utilisateur sélectionne une option. 
- * 
  * @return un pointeur vers une chaîne de caractères contenant le message à envoyer au serveur en fonction de l'option sélectionnée par l'utilisateur.
  * @ingroup fonct_duClient
  */
@@ -519,14 +504,15 @@ char *affichage(){
             echo();
             clear();
             char position[50];
+			printw("position (LARGEURxHAUTEUR): ");
             getnstr(position, 50);
             char couleur[50];
+			printw("couleur (RRRGGGBBB): ");
             getnstr(couleur, 50);
             strcpy(couleur,base64_encode(couleur));
             messageFinal = malloc(100 * sizeof(char));
             sprintf(messageFinal, "/setPixel %s %s", position, couleur);
             clear();
-            printw("le msg: %s", messageFinal);
             noecho();
             break;
 

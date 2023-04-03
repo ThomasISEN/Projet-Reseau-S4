@@ -62,7 +62,7 @@ void initMatrice(CASE *matrice, int taille);
 char *setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val);
 char *getMatrice(CASE *matrice, int ligne,int colone);
 char *getSize(int l, int c);
-char *getLimits(int l, int c,int maxTempsAttente);
+char *getLimits(int maxTempsAttente);
 char *getVersion();
 char *getWaitTime(CLIENT *liste, int i);
 void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur[1], char *mot);
@@ -78,16 +78,11 @@ CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds);
 CLIENT *deduirePixel(CLIENT *liste, int i);
 char* base64_encode(const char* rgb);
 char* base64_decode(const char* messageRecu);
+void afficher_id_clients(struct CLIENT *liste_client);
 
 
 
-void afficher_id_clients(struct CLIENT *liste_client) {
-    struct CLIENT *p = liste_client;
-    while (p != NULL) {
-        printf("ID client : %d restant: %d\n", p->id, p->pixel);
-        p = p->suiv;
-    }
-}
+
 
 //---------------------------------------//
 int main(int argc, char *argv[]) {
@@ -233,7 +228,7 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
                     client->id=i;
                     client->timer=time(0);
 					liste_client=ajouterClient(liste_client, client);
-					printf("Nouvelle connexion : %s:%d id:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client->id);
+					printf("Nouvelle connexion %s:%d id:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), client->id);
 				}
             }
         }
@@ -249,13 +244,13 @@ void mainServeur( CASE *matrice, int l, int c, int socketEcoute, CLIENT *liste_c
                     perror("Erreur lors de la lecture des données");
                 } else if (lus == 0) {
                     // Déconnexion du client
-                    printf("Déconnexion du client : %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+                    printf("Déconnexion du client %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
                     close(fds[i].fd);
 					liste_client=supprimeClient(liste_client, i);
                 } else {
                     // Affichage du message reçu
                     messageRecu[lus]='\0';
-                    printf("Message reçu de %s:%d : '%s'\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);                    
+                    printf("Message reçu de %s:%d '%s'\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), messageRecu);                    
                     strcpy(messageEnvoi,interpretationMsg(matrice, l, c, messageRecu, liste_client, i, maxPixel));
                     // Mise à jour de l'état du client
                     liste_client = actualiseClient(liste_client, fds);
@@ -481,7 +476,7 @@ char *setPixel(CASE *matrice, int posL, int posC,int l, int c, char *val){
             i+=3;
         }
         strcpy(matrice[(posL*c)+posC].couleur, val); //(posL*c)+posC valeur sur un tableau 1D d'une position en tableau 2D
-        printf("la case : '%s'\n",matrice[(posL*c)+posC].couleur);
+        printf("la case '%s'\n",matrice[(posL*c)+posC].couleur);
         return "00 OK\0"; //OK
     }else
     {
@@ -508,7 +503,7 @@ char* getMatrice(CASE *matrice, int ligne, int colonne) {
     // La taille de la chaîne résultante doit être suffisamment grande pour stocker tous les caractères
 
     if (chaine == NULL) {
-        printf("Erreur : impossible d'allouer suffisamment d'espace mémoire pour la chaîne\n");
+        printf("Erreur impossible d'allouer suffisamment d'espace mémoire pour la chaîne\n");
         return NULL;
     }
     
@@ -520,7 +515,7 @@ char* getMatrice(CASE *matrice, int ligne, int colonne) {
             int tailleCouleur = strlen(matrice[i * colonne + j].couleur);
             char* temp = malloc((tailleCouleur + 1) * sizeof(char)); // Alloue suffisamment d'espace pour stocker la couleur
             if (temp == NULL) {
-                printf("Erreur : impossible d'allouer suffisamment d'espace mémoire pour temp\n");
+                printf("Erreur impossible d'allouer suffisamment d'espace mémoire pour temp\n");
                 free(chaine); // Libère l'espace mémoire alloué pour la chaîne
                 return NULL;
             }
@@ -558,7 +553,7 @@ char *getSize(int l, int c){
  * @return Un pointeur vers une chaîne de caractères représentant la limite minimale de pixel.
  * @ingroup fonct_jeu
  */
-char *getLimits(int l, int c,int pix_Min){
+char *getLimits(int pix_Min){
 	char *resultat = (char *) malloc(LG_MESSAGE * sizeof(char));
     sprintf(resultat, "%d", pix_Min);
     return resultat;
@@ -622,7 +617,7 @@ void selectMot(char phrase[LG_MESSAGE*sizeof(char)], int nombre, char separateur
 			j++;
 		}
 		i++;
-		if (phrase[i]==*separateur || phrase[i]==' ')// on passe au mot suivant // séparateur : pour le x de la position
+		if (phrase[i]==*separateur || phrase[i]==' ')// on passe au mot suivant // séparateur pour le x de la position
 		{
 			i++;
 			cpt++;
@@ -685,17 +680,17 @@ void listenSocket(int socketEcoute) {
 }
 
 /**
- * interpretationMsg : Fonction qui analyse un message reçu et effectue une action en fonction de son contenu.
+ * interpretationMsg Fonction qui analyse un message reçu et effectue une action en fonction de son contenu.
  *
- * @param matrice : Pointeur vers une matrice de type CASE.
- * @param l : Taille de la matrice en longueur.
- * @param c : Taille de la matrice en largeur.
- * @param messageRecu : Tableau de caractères contenant le message reçu.
- * @param liste_client : Pointeur vers la liste des clients connectés.
- * @param i : Identifiant du client qui a envoyé le message.
- * @param maxPixel : Nombre maximum de pixels qu'un client peut allouer à la matrice.
+ * @param matrice Pointeur vers une matrice de type CASE.
+ * @param l Taille de la matrice en longueur.
+ * @param c Taille de la matrice en largeur.
+ * @param messageRecu Tableau de caractères contenant le message reçu.
+ * @param liste_client Pointeur vers la liste des clients connectés.
+ * @param i Identifiant du client qui a envoyé le message.
+ * @param maxPixel Nombre maximum de pixels qu'un client peut allouer à la matrice.
  *
- * @return : Un pointeur vers un tableau de caractères contenant la réponse de la commande.
+ * @return Un pointeur vers un tableau de caractères contenant la réponse de la commande.
  * @ingroup fonct_reseau
  */
 char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE], CLIENT *liste_client, int i,int maxPixel){
@@ -768,7 +763,7 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
             return base64_encode(data);
 
         } else if(strcmp(prMot,"/getLimits\0")==0){
-            return getLimits(l, c, 5);
+            return getLimits(maxPixel);
 
         } else if(strcmp(prMot,"/getVersion\0")==0){
             return getVersion();
@@ -786,12 +781,12 @@ char* interpretationMsg(CASE *matrice, int l, int c,char messageRecu[LG_MESSAGE]
 //-------------FONCTION CLIENT-------------//
 
 /**
- * supprimeClient : Fonction qui supprime un client de la liste des clients connectés en fonction de son identifiant.
+ * supprimeClient Fonction qui supprime un client de la liste des clients connectés en fonction de son identifiant.
  *
- * @param liste : Pointeur vers la liste des clients connectés.
- * @param idSup : Identifiant du client à supprimer.
+ * @param liste Pointeur vers la liste des clients connectés.
+ * @param idSup Identifiant du client à supprimer.
  *
- * @return : Un pointeur vers la nouvelle liste des clients connectés.
+ * @return Un pointeur vers la nouvelle liste des clients connectés.
  * @ingroup fonct_client
  */
 CLIENT* supprimeClient(CLIENT *liste, int idSup){
@@ -821,11 +816,11 @@ CLIENT* supprimeClient(CLIENT *liste, int idSup){
 }
 
 /**
- * creerClient : Fonction qui crée un nouveau client.
+ * creerClient Fonction qui crée un nouveau client.
  *
- * @param maxPixel : Le nombre maximal de pixels que le client peut envoyer.
+ * @param maxPixel Le nombre maximal de pixels que le client peut envoyer.
  *
- * @return : Un pointeur vers le nouveau client créé.
+ * @return Un pointeur vers le nouveau client créé.
  * @ingroup fonct_client
  */
 CLIENT* creerClient(int maxPixel){
@@ -841,12 +836,12 @@ CLIENT* creerClient(int maxPixel){
 }
 
 /**
- * ajouterClient : Fonction qui ajoute un client à la liste des clients connectés.
+ * ajouterClient Fonction qui ajoute un client à la liste des clients connectés.
  *
- * @param liste : Pointeur vers la liste des clients connectés.
- * @param pers : Pointeur vers la structure CLIENT contenant les informations du client à ajouter.
+ * @param liste Pointeur vers la liste des clients connectés.
+ * @param pers Pointeur vers la structure CLIENT contenant les informations du client à ajouter.
  *
- * @return : Un pointeur vers la nouvelle liste des clients connectés.
+ * @return Un pointeur vers la nouvelle liste des clients connectés.
  * @ingroup fonct_client
  */
 CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers){
@@ -869,12 +864,12 @@ CLIENT* ajouterClient(CLIENT* liste, CLIENT* pers){
 }
 
 /**
- * actualiseClient : Fonction qui actualise l'état des clients en fonction des événements du poll.
+ * actualiseClient Fonction qui actualise l'état des clients en fonction des événements du poll.
  *
- * @param liste_client : Pointeur vers la liste des clients connectés.
- * @param fds : Tableau de pollfd contenant les événements à surveiller pour chaque client.
+ * @param liste_client Pointeur vers la liste des clients connectés.
+ * @param fds Tableau de pollfd contenant les événements à surveiller pour chaque client.
  *
- * @return : Un pointeur vers la liste des clients connectés mise à jour.
+ * @return Un pointeur vers la liste des clients connectés mise à jour.
  * @ingroup fonct_client
  */
 CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds) {
@@ -906,12 +901,12 @@ CLIENT *actualiseClient(CLIENT *liste_client, struct pollfd *fds) {
 }
 
 /**
- * deduirePixel : Fonction qui déduit un pixel du compte d'un client en fonction de son identifiant.
+ * deduirePixel Fonction qui déduit un pixel du compte d'un client en fonction de son identifiant.
  *
- * @param liste : Pointeur vers la liste des clients connectés.
- * @param i : Identifiant du client dont on veut déduire un pixel.
+ * @param liste Pointeur vers la liste des clients connectés.
+ * @param i Identifiant du client dont on veut déduire un pixel.
  *
- * @return : Un pointeur vers la nouvelle liste des clients connectés.
+ * @return Un pointeur vers la nouvelle liste des clients connectés.
  * @ingroup fonct_client
  */
 CLIENT *deduirePixel(CLIENT *liste, int i){
@@ -926,9 +921,17 @@ CLIENT *deduirePixel(CLIENT *liste, int i){
         curr->pixel--;
     }
     
-    //printf("l'ID %d a un nombre de pixel de : %d\n", i, curr->pixel);
+    //printf("l'ID %d a un nombre de pixel de %d\n", i, curr->pixel);
     
     return liste;
+}
+
+void afficher_id_clients(struct CLIENT *liste_client) {
+    struct CLIENT *p = liste_client;
+    while (p != NULL) {
+        printf("ID client %d restant: %d\n", p->id, p->pixel);
+        p = p->suiv;
+    }
 }
 //---------------------------------------//
 
