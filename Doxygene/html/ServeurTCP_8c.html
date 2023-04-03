@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.17"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>PIXEL WAR: Référence du fichier /mnt/d/Documents/ISEN2/Reseaux/Projet/Projet-Reseau-S4/Serveur/ServeurTCP.c</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">PIXEL WAR
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Généré par Doxygen 1.8.17 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Recherche');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Recherche');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="dir_382518d9d13b49734f5f37545e2bca3b.html">Serveur</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#define-members">Macros</a> &#124;
+<a href="#typedef-members">Définitions de type</a> &#124;
+<a href="#func-members">Fonctions</a>  </div>
+  <div class="headertitle">
+<div class="title">Référence du fichier ServeurTCP.c</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Gestion du serveur.  
+<a href="#details">Plus de détails...</a></p>
+<div class="textblock"><code>#include &lt;stdio.h&gt;</code><br />
+<code>#include &lt;stdlib.h&gt;</code><br />
+<code>#include &lt;string.h&gt;</code><br />
+<code>#include &lt;unistd.h&gt;</code><br />
+<code>#include &lt;errno.h&gt;</code><br />
+<code>#include &lt;sys/socket.h&gt;</code><br />
+<code>#include &lt;arpa/inet.h&gt;</code><br />
+<code>#include &lt;netinet/in.h&gt;</code><br />
+<code>#include &lt;sys/types.h&gt;</code><br />
+<code>#include &lt;poll.h&gt;</code><br />
+<code>#include &lt;time.h&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Graphe des dépendances par inclusion de ServeurTCP.c:</div>
+<div class="dyncontent">
+<div class="center"><img src="ServeurTCP_8c__incl.png" border="0" usemap="#_2mnt_2d_2Documents_2ISEN2_2Reseaux_2Projet_2Projet-Reseau-S4_2Serveur_2ServeurTCP_8c" alt=""/></div>
+<!-- MAP 0 -->
+</div>
+</div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCASE.html">CASE</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCLIENT.html">CLIENT</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:aeda086401816627427cad30477f53556"><td class="memItemLeft" align="right" valign="top"><a id="aeda086401816627427cad30477f53556"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>LG_MESSAGE</b>&#160;&#160;&#160;1024</td></tr>
+<tr class="separator:aeda086401816627427cad30477f53556"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5caebf870bad746770549a3e5fa09495"><td class="memItemLeft" align="right" valign="top"><a id="a5caebf870bad746770549a3e5fa09495"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>MAX_PIXEL</b>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:a5caebf870bad746770549a3e5fa09495"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8ba2d8f79af5ca38005742bbc29a927"><td class="memItemLeft" align="right" valign="top"><a id="ab8ba2d8f79af5ca38005742bbc29a927"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>MAX_CLIENT</b>&#160;&#160;&#160;10</td></tr>
+<tr class="separator:ab8ba2d8f79af5ca38005742bbc29a927"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Définitions de type</h2></td></tr>
+<tr class="memitem:aaf5114f67174c54eda3370e387e349d7"><td class="memItemLeft" align="right" valign="top"><a id="aaf5114f67174c54eda3370e387e349d7"></a>
+typedef struct <a class="el" href="structCASE.html">CASE</a>&#160;</td><td class="memItemRight" valign="bottom"><b>CASE</b></td></tr>
+<tr class="separator:aaf5114f67174c54eda3370e387e349d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a850523f2b1f7fcdca50fb8b0a3cb3749"><td class="memItemLeft" align="right" valign="top"><a id="a850523f2b1f7fcdca50fb8b0a3cb3749"></a>
+typedef struct <a class="el" href="structCLIENT.html">CLIENT</a>&#160;</td><td class="memItemRight" valign="bottom"><b>CLIENT</b></td></tr>
+<tr class="separator:a850523f2b1f7fcdca50fb8b0a3cb3749"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Fonctions</h2></td></tr>
+<tr class="memitem:gae20bfb5faa6fc07ecebf988aa9b40a36"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#gae20bfb5faa6fc07ecebf988aa9b40a36">initMatrice</a> (<a class="el" href="structCASE.html">CASE</a> *matrice, int taille)</td></tr>
+<tr class="separator:gae20bfb5faa6fc07ecebf988aa9b40a36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1c35e85527bdb6f9adaf349d3fa2b2fc"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#ga1c35e85527bdb6f9adaf349d3fa2b2fc">setPixel</a> (<a class="el" href="structCASE.html">CASE</a> *matrice, int posL, int posC, int l, int c, char *val)</td></tr>
+<tr class="memdesc:ga1c35e85527bdb6f9adaf349d3fa2b2fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Modifie la couleur d'un pixel dans une matrice.  <a href="group__fonct__jeu.html#ga1c35e85527bdb6f9adaf349d3fa2b2fc">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga1c35e85527bdb6f9adaf349d3fa2b2fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga939c702975da2d32ef38d09554e326f8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#ga939c702975da2d32ef38d09554e326f8">getMatrice</a> (<a class="el" href="structCASE.html">CASE</a> *matrice, int ligne, int colonne)</td></tr>
+<tr class="memdesc:ga939c702975da2d32ef38d09554e326f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fonction qui retourne une chaîne de caractères contenant les couleurs de chaque case d'une matrice.  <a href="group__fonct__jeu.html#ga939c702975da2d32ef38d09554e326f8">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga939c702975da2d32ef38d09554e326f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac0107497690de4cbc2ea1bb20c704f47"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#gac0107497690de4cbc2ea1bb20c704f47">getSize</a> (int l, int c)</td></tr>
+<tr class="separator:gac0107497690de4cbc2ea1bb20c704f47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaccb8bf088c40a4004765279df35d6fb8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#gaccb8bf088c40a4004765279df35d6fb8">getLimits</a> (int l, int c, int pix_Min)</td></tr>
+<tr class="memdesc:gaccb8bf088c40a4004765279df35d6fb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Récupère la limite minimale de pixel pour une image de dimensions spécifiées.  <a href="group__fonct__jeu.html#gaccb8bf088c40a4004765279df35d6fb8">Plus de détails...</a><br /></td></tr>
+<tr class="separator:gaccb8bf088c40a4004765279df35d6fb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga822846a0282161ad2349a86b8c23c2b4"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#ga822846a0282161ad2349a86b8c23c2b4">getVersion</a> ()</td></tr>
+<tr class="memdesc:ga822846a0282161ad2349a86b8c23c2b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Renvoie la version actuelle du programme.  <a href="group__fonct__jeu.html#ga822846a0282161ad2349a86b8c23c2b4">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga822846a0282161ad2349a86b8c23c2b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga272be44dee3b3ac371449b96d9e6032a"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#ga272be44dee3b3ac371449b96d9e6032a">getWaitTime</a> (<a class="el" href="structCLIENT.html">CLIENT</a> *liste, int i)</td></tr>
+<tr class="memdesc:ga272be44dee3b3ac371449b96d9e6032a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calcule le temps restant avant que le client ne puisse envoyer une autre requête.  <a href="group__fonct__jeu.html#ga272be44dee3b3ac371449b96d9e6032a">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga272be44dee3b3ac371449b96d9e6032a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e9f9597bab3a71b30cfb477f3444f2b"><td class="memItemLeft" align="right" valign="top"><a id="a1e9f9597bab3a71b30cfb477f3444f2b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>stripFunc</b> (char phrase[LG_MESSAGE *sizeof(char)])</td></tr>
+<tr class="separator:a1e9f9597bab3a71b30cfb477f3444f2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab0e89b050633603f5307034ef3412860"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#gab0e89b050633603f5307034ef3412860">selectMot</a> (char phrase[LG_MESSAGE *sizeof(char)], int nombre, char separateur[1], char *mot)</td></tr>
+<tr class="memdesc:gab0e89b050633603f5307034ef3412860"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sélectionne un mot spécifique dans une phrase donnée en fonction de sa position.  <a href="group__fonct__jeu.html#gab0e89b050633603f5307034ef3412860">Plus de détails...</a><br /></td></tr>
+<tr class="separator:gab0e89b050633603f5307034ef3412860"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93d038ed0fb4565c923ade2148214485"><td class="memItemLeft" align="right" valign="top"><a id="a93d038ed0fb4565c923ade2148214485"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>afficheMatrice</b> (<a class="el" href="structCASE.html">CASE</a> *matrice)</td></tr>
+<tr class="separator:a93d038ed0fb4565c923ade2148214485"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5ece610682861d1713357ebe3d61997f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__reseau.html#ga5ece610682861d1713357ebe3d61997f">createSocket</a> ()</td></tr>
+<tr class="memdesc:ga5ece610682861d1713357ebe3d61997f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Crée une nouvelle socket TCP/IP.  <a href="group__fonct__reseau.html#ga5ece610682861d1713357ebe3d61997f">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga5ece610682861d1713357ebe3d61997f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabe2770622c6fe670c0d69a32aec56194"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__reseau.html#gabe2770622c6fe670c0d69a32aec56194">bindSocket</a> (int socketEcoute, int port)</td></tr>
+<tr class="memdesc:gabe2770622c6fe670c0d69a32aec56194"><td class="mdescLeft">&#160;</td><td class="mdescRight">Associe la socket à un port spécifié.  <a href="group__fonct__reseau.html#gabe2770622c6fe670c0d69a32aec56194">Plus de détails...</a><br /></td></tr>
+<tr class="separator:gabe2770622c6fe670c0d69a32aec56194"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf7fb77bd49683171bed93596081a7f18"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__reseau.html#gaf7fb77bd49683171bed93596081a7f18">listenSocket</a> (int socketEcoute)</td></tr>
+<tr class="memdesc:gaf7fb77bd49683171bed93596081a7f18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Place la socket en mode d'écoute passive.  <a href="group__fonct__reseau.html#gaf7fb77bd49683171bed93596081a7f18">Plus de détails...</a><br /></td></tr>
+<tr class="separator:gaf7fb77bd49683171bed93596081a7f18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2da2d127e8b28985cdf6e9c98f222335"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__reseau.html#ga2da2d127e8b28985cdf6e9c98f222335">interpretationMsg</a> (<a class="el" href="structCASE.html">CASE</a> *matrice, int l, int c, char messageRecu[LG_MESSAGE], <a class="el" href="structCLIENT.html">CLIENT</a> *liste_client, int i, int maxPixel)</td></tr>
+<tr class="separator:ga2da2d127e8b28985cdf6e9c98f222335"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80b911004ea2a19e3d3e438222e14a38"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ServeurTCP_8c.html#a80b911004ea2a19e3d3e438222e14a38">mainServeur</a> (<a class="el" href="structCASE.html">CASE</a> *matrice, int l, int c, int socketEcoute, <a class="el" href="structCLIENT.html">CLIENT</a> *liste_client, int maxPixel)</td></tr>
+<tr class="separator:a80b911004ea2a19e3d3e438222e14a38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac05ed254304a2d5af78a5dd865cbf5a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structCLIENT.html">CLIENT</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__client.html#gac05ed254304a2d5af78a5dd865cbf5a8">creerClient</a> (int maxPixel)</td></tr>
+<tr class="separator:gac05ed254304a2d5af78a5dd865cbf5a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa735946c717aa8c19f35afdcc3f39857"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structCLIENT.html">CLIENT</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__client.html#gaa735946c717aa8c19f35afdcc3f39857">ajouterClient</a> (<a class="el" href="structCLIENT.html">CLIENT</a> *liste, <a class="el" href="structCLIENT.html">CLIENT</a> *pers)</td></tr>
+<tr class="separator:gaa735946c717aa8c19f35afdcc3f39857"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad8648e36afe2ccc995c985f7f748c60f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structCLIENT.html">CLIENT</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__client.html#gad8648e36afe2ccc995c985f7f748c60f">supprimeClient</a> (<a class="el" href="structCLIENT.html">CLIENT</a> *liste, int idSup)</td></tr>
+<tr class="separator:gad8648e36afe2ccc995c985f7f748c60f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga04c8441ecf27f4b3cc1812983acd8b8b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structCLIENT.html">CLIENT</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__client.html#ga04c8441ecf27f4b3cc1812983acd8b8b">actualiseClient</a> (<a class="el" href="structCLIENT.html">CLIENT</a> *liste_client, struct pollfd *fds)</td></tr>
+<tr class="separator:ga04c8441ecf27f4b3cc1812983acd8b8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6c392190d9cbd8fd648d875ac6af8ec0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structCLIENT.html">CLIENT</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__client.html#ga6c392190d9cbd8fd648d875ac6af8ec0">deduirePixel</a> (<a class="el" href="structCLIENT.html">CLIENT</a> *liste, int i)</td></tr>
+<tr class="separator:ga6c392190d9cbd8fd648d875ac6af8ec0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga16fada0c8bb9e161532c79fbdce98de5"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#ga16fada0c8bb9e161532c79fbdce98de5">base64_encode</a> (const char *rgb)</td></tr>
+<tr class="separator:ga16fada0c8bb9e161532c79fbdce98de5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab8cca7e003ba6fed5fe50c11624958e2"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#gab8cca7e003ba6fed5fe50c11624958e2">base64_decode</a> (const char *messageRecu)</td></tr>
+<tr class="separator:gab8cca7e003ba6fed5fe50c11624958e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4865186329ef4748e88deef316daa7da"><td class="memItemLeft" align="right" valign="top"><a id="a4865186329ef4748e88deef316daa7da"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>afficher_id_clients</b> (struct <a class="el" href="structCLIENT.html">CLIENT</a> *liste_client)</td></tr>
+<tr class="separator:a4865186329ef4748e88deef316daa7da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft" align="right" valign="top"><a id="a0ddf1224851353fc92bfbff6f499fa97"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, char *argv[])</td></tr>
+<tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Description détaillée</h2>
+<div class="textblock"><p>Gestion du serveur. </p>
+<dl class="section author"><dt>Auteur</dt><dd>Denis Arrahmani Massard </dd></dl>
+<dl class="section version"><dt>Version</dt><dd>1 </dd></dl>
+<dl class="section date"><dt>Date</dt><dd>31 mars 2023 </dd></dl>
+</div><h2 class="groupheader">Documentation des fonctions</h2>
+<a id="a80b911004ea2a19e3d3e438222e14a38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80b911004ea2a19e3d3e438222e14a38">&#9670;&nbsp;</a></span>mainServeur()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mainServeur </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structCASE.html">CASE</a> *&#160;</td>
+          <td class="paramname"><em>matrice</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>l</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>c</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>socketEcoute</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structCLIENT.html">CLIENT</a> *&#160;</td>
+          <td class="paramname"><em>liste_client</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>maxPixel</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Fonction principale du serveur qui gère les connexions avec les clients. </p><dl class="params"><dt>Paramètres</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">matrice</td><td>la matrice représentant l'image à afficher </td></tr>
+    <tr><td class="paramname">l</td><td>le nombre de lignes de la matrice </td></tr>
+    <tr><td class="paramname">c</td><td>le nombre de colonnes de la matrice </td></tr>
+    <tr><td class="paramname">socketEcoute</td><td>le socket d'écoute sur lequel le serveur accepte les connexions entrantes </td></tr>
+    <tr><td class="paramname">liste_client</td><td>la liste chaînée des clients connectés au serveur </td></tr>
+    <tr><td class="paramname">maxPixel</td><td>le nombre maximal de pixels modifiables par un client </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Généré par &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.17
+</small></address>
+</body>
+</html>

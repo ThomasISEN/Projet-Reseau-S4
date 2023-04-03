@@ -1,0 +1,99 @@
+\hypertarget{group__fonct__reseau}{}\doxysection{Fonctions du protocole}
+\label{group__fonct__reseau}\index{Fonctions du protocole@{Fonctions du protocole}}
+
+
+Fonctions qui permettent de mettre en place et faire marcher la communication client serveur.  
+
+
+\doxysubsection*{Fonctions}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{group__fonct__reseau_ga5ece610682861d1713357ebe3d61997f}{create\+Socket}} ()
+\begin{DoxyCompactList}\small\item\em Crée une nouvelle socket T\+C\+P/\+IP. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{group__fonct__reseau_gabe2770622c6fe670c0d69a32aec56194}{bind\+Socket}} (int socket\+Ecoute, int port)
+\begin{DoxyCompactList}\small\item\em Associe la socket à un port spécifié. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{group__fonct__reseau_gaf7fb77bd49683171bed93596081a7f18}{listen\+Socket}} (int socket\+Ecoute)
+\begin{DoxyCompactList}\small\item\em Place la socket en mode d\textquotesingle{}écoute passive. \end{DoxyCompactList}\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__reseau_ga2da2d127e8b28985cdf6e9c98f222335}{interpretation\+Msg}} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice, int l, int c, char message\+Recu\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE\mbox{]}, \mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste\+\_\+client, int i, int max\+Pixel)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Description détaillée}
+Fonctions qui permettent de mettre en place et faire marcher la communication client serveur. 
+
+
+
+\doxysubsection{Documentation des fonctions}
+\mbox{\Hypertarget{group__fonct__reseau_gabe2770622c6fe670c0d69a32aec56194}\label{group__fonct__reseau_gabe2770622c6fe670c0d69a32aec56194}} 
+\index{Fonctions du protocole@{Fonctions du protocole}!bindSocket@{bindSocket}}
+\index{bindSocket@{bindSocket}!Fonctions du protocole@{Fonctions du protocole}}
+\doxysubsubsection{\texorpdfstring{bindSocket()}{bindSocket()}}
+{\footnotesize\ttfamily void bind\+Socket (\begin{DoxyParamCaption}\item[{int}]{socket\+Ecoute,  }\item[{int}]{port }\end{DoxyParamCaption})}
+
+
+
+Associe la socket à un port spécifié. 
+
+
+\begin{DoxyParams}{Paramètres}
+{\em socket\+Ecoute} & Identifiant de la socket à associer au port. \\
+\hline
+{\em port} & Port à associer à la socket. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{group__fonct__reseau_ga5ece610682861d1713357ebe3d61997f}\label{group__fonct__reseau_ga5ece610682861d1713357ebe3d61997f}} 
+\index{Fonctions du protocole@{Fonctions du protocole}!createSocket@{createSocket}}
+\index{createSocket@{createSocket}!Fonctions du protocole@{Fonctions du protocole}}
+\doxysubsubsection{\texorpdfstring{createSocket()}{createSocket()}}
+{\footnotesize\ttfamily int create\+Socket (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Crée une nouvelle socket T\+C\+P/\+IP. 
+
+\begin{DoxyReturn}{Renvoie}
+Retourne l\textquotesingle{}identifiant de la socket créée. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__fonct__reseau_ga2da2d127e8b28985cdf6e9c98f222335}\label{group__fonct__reseau_ga2da2d127e8b28985cdf6e9c98f222335}} 
+\index{Fonctions du protocole@{Fonctions du protocole}!interpretationMsg@{interpretationMsg}}
+\index{interpretationMsg@{interpretationMsg}!Fonctions du protocole@{Fonctions du protocole}}
+\doxysubsubsection{\texorpdfstring{interpretationMsg()}{interpretationMsg()}}
+{\footnotesize\ttfamily char $\ast$ interpretation\+Msg (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$}]{matrice,  }\item[{int}]{l,  }\item[{int}]{c,  }\item[{char}]{message\+Recu\mbox{[}\+L\+G\+\_\+\+M\+E\+S\+S\+A\+G\+E\mbox{]},  }\item[{\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$}]{liste\+\_\+client,  }\item[{int}]{i,  }\item[{int}]{max\+Pixel }\end{DoxyParamCaption})}
+
+interpretation\+Msg \+: Fonction qui analyse un message reçu et effectue une action en fonction de son contenu.
+
+
+\begin{DoxyParams}{Paramètres}
+{\em matrice} & \+: Pointeur vers une matrice de type \mbox{\hyperlink{structCASE}{C\+A\+SE}}. \\
+\hline
+{\em l} & \+: Taille de la matrice en longueur. \\
+\hline
+{\em c} & \+: Taille de la matrice en largeur. \\
+\hline
+{\em message\+Recu} & \+: Tableau de caractères contenant le message reçu. \\
+\hline
+{\em liste\+\_\+client} & \+: Pointeur vers la liste des clients connectés. \\
+\hline
+{\em i} & \+: Identifiant du client qui a envoyé le message. \\
+\hline
+{\em max\+Pixel} & \+: Nombre maximum de pixels qu\textquotesingle{}un client peut allouer à la matrice.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Renvoie}
+\+: Un pointeur vers un tableau de caractères contenant la réponse de la commande. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__fonct__reseau_gaf7fb77bd49683171bed93596081a7f18}\label{group__fonct__reseau_gaf7fb77bd49683171bed93596081a7f18}} 
+\index{Fonctions du protocole@{Fonctions du protocole}!listenSocket@{listenSocket}}
+\index{listenSocket@{listenSocket}!Fonctions du protocole@{Fonctions du protocole}}
+\doxysubsubsection{\texorpdfstring{listenSocket()}{listenSocket()}}
+{\footnotesize\ttfamily void listen\+Socket (\begin{DoxyParamCaption}\item[{int}]{socket\+Ecoute }\end{DoxyParamCaption})}
+
+
+
+Place la socket en mode d\textquotesingle{}écoute passive. 
+
+
+\begin{DoxyParams}{Paramètres}
+{\em socket\+Ecoute} & Identifiant de la socket à placer en écoute passive. \\
+\hline
+\end{DoxyParams}

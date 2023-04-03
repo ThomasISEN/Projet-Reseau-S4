@@ -1,0 +1,232 @@
+\hypertarget{group__fonct__jeu}{}\doxysection{Fonctions du jeu}
+\label{group__fonct__jeu}\index{Fonctions du jeu@{Fonctions du jeu}}
+
+
+Fonctions qui permettent d\textquotesingle{}échanger des informations sur le jeu.  
+
+
+\doxysubsection*{Fonctions}
+\begin{DoxyCompactItemize}
+\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga16fada0c8bb9e161532c79fbdce98de5}{base64\+\_\+encode}} (const char $\ast$rgb)
+\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_gab8cca7e003ba6fed5fe50c11624958e2}{base64\+\_\+decode}} (const char $\ast$message\+Recu)
+\item 
+void \mbox{\hyperlink{group__fonct__jeu_gae20bfb5faa6fc07ecebf988aa9b40a36}{init\+Matrice}} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice, int taille)
+\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga1c35e85527bdb6f9adaf349d3fa2b2fc}{set\+Pixel}} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice, int posL, int posC, int l, int c, char $\ast$val)
+\begin{DoxyCompactList}\small\item\em Modifie la couleur d\textquotesingle{}un pixel dans une matrice. \end{DoxyCompactList}\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga939c702975da2d32ef38d09554e326f8}{get\+Matrice}} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice, int ligne, int colonne)
+\begin{DoxyCompactList}\small\item\em Fonction qui retourne une chaîne de caractères contenant les couleurs de chaque case d\textquotesingle{}une matrice. \end{DoxyCompactList}\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_gac0107497690de4cbc2ea1bb20c704f47}{get\+Size}} (int l, int c)
+\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_gaccb8bf088c40a4004765279df35d6fb8}{get\+Limits}} (int l, int c, int pix\+\_\+\+Min)
+\begin{DoxyCompactList}\small\item\em Récupère la limite minimale de pixel pour une image de dimensions spécifiées. \end{DoxyCompactList}\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga822846a0282161ad2349a86b8c23c2b4}{get\+Version}} ()
+\begin{DoxyCompactList}\small\item\em Renvoie la version actuelle du programme. \end{DoxyCompactList}\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga272be44dee3b3ac371449b96d9e6032a}{get\+Wait\+Time}} (\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste, int i)
+\begin{DoxyCompactList}\small\item\em Calcule le temps restant avant que le client ne puisse envoyer une autre requête. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{group__fonct__jeu_gab0e89b050633603f5307034ef3412860}{select\+Mot}} (char phrase\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE $\ast$sizeof(char)\mbox{]}, int nombre, char separateur\mbox{[}1\mbox{]}, char $\ast$mot)
+\begin{DoxyCompactList}\small\item\em Sélectionne un mot spécifique dans une phrase donnée en fonction de sa position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Description détaillée}
+Fonctions qui permettent d\textquotesingle{}échanger des informations sur le jeu. 
+
+
+
+\doxysubsection{Documentation des fonctions}
+\mbox{\Hypertarget{group__fonct__jeu_gab8cca7e003ba6fed5fe50c11624958e2}\label{group__fonct__jeu_gab8cca7e003ba6fed5fe50c11624958e2}} 
+\index{Fonctions du jeu@{Fonctions du jeu}!base64\_decode@{base64\_decode}}
+\index{base64\_decode@{base64\_decode}!Fonctions du jeu@{Fonctions du jeu}}
+\doxysubsubsection{\texorpdfstring{base64\_decode()}{base64\_decode()}}
+{\footnotesize\ttfamily char $\ast$ base64\+\_\+decode (\begin{DoxyParamCaption}\item[{const char $\ast$}]{message\+Recu }\end{DoxyParamCaption})}
+
+Convertit une chaîne de caractères encodée en base64 en chaîne de caractères décodée en R\+GB.
+
+
+\begin{DoxyParams}{Paramètres}
+{\em message\+Recu} & La chaîne de caractères encodée en base64 à décoder. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Renvoie}
+La chaîne de caractères décodée en R\+GB, au format \char`\"{}\+R\+R\+R\+G\+G\+G\+B\+B\+B\+R\+R\+R\+G\+G\+G\+B\+B\+B\+R\+R\+R\+G\+G\+G\+B\+B\+B...\char`\"{}. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__fonct__jeu_ga16fada0c8bb9e161532c79fbdce98de5}\label{group__fonct__jeu_ga16fada0c8bb9e161532c79fbdce98de5}} 
+\index{Fonctions du jeu@{Fonctions du jeu}!base64\_encode@{base64\_encode}}
+\index{base64\_encode@{base64\_encode}!Fonctions du jeu@{Fonctions du jeu}}
+\doxysubsubsection{\texorpdfstring{base64\_encode()}{base64\_encode()}}
+{\footnotesize\ttfamily char$\ast$ base64\+\_\+encode (\begin{DoxyParamCaption}\item[{const char $\ast$}]{rgb }\end{DoxyParamCaption})}
+
+Encodes un tableau de caractères en base64. 
+\begin{DoxyParams}{Paramètres}
+{\em rgb} & Le tableau de caractères à encoder. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Renvoie}
+Un pointeur vers le tableau de caractères encodé en base64, ou N\+U\+LL en cas d\textquotesingle{}erreur. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__fonct__jeu_gaccb8bf088c40a4004765279df35d6fb8}\label{group__fonct__jeu_gaccb8bf088c40a4004765279df35d6fb8}} 
+\index{Fonctions du jeu@{Fonctions du jeu}!getLimits@{getLimits}}
+\index{getLimits@{getLimits}!Fonctions du jeu@{Fonctions du jeu}}
+\doxysubsubsection{\texorpdfstring{getLimits()}{getLimits()}}
+{\footnotesize\ttfamily char $\ast$ get\+Limits (\begin{DoxyParamCaption}\item[{int}]{l,  }\item[{int}]{c,  }\item[{int}]{pix\+\_\+\+Min }\end{DoxyParamCaption})}
+
+
+
+Récupère la limite minimale de pixel pour une image de dimensions spécifiées. 
+
+
+\begin{DoxyParams}{Paramètres}
+{\em l} & Le nombre de lignes de l\textquotesingle{}image. \\
+\hline
+{\em c} & Le nombre de colonnes de l\textquotesingle{}image. \\
+\hline
+{\em pix\+\_\+\+Min} & Le pixel minimum de l\textquotesingle{}image.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Renvoie}
+Un pointeur vers une chaîne de caractères représentant la limite minimale de pixel. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__fonct__jeu_ga939c702975da2d32ef38d09554e326f8}\label{group__fonct__jeu_ga939c702975da2d32ef38d09554e326f8}} 
+\index{Fonctions du jeu@{Fonctions du jeu}!getMatrice@{getMatrice}}
+\index{getMatrice@{getMatrice}!Fonctions du jeu@{Fonctions du jeu}}
+\doxysubsubsection{\texorpdfstring{getMatrice()}{getMatrice()}}
+{\footnotesize\ttfamily char $\ast$ get\+Matrice (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$}]{matrice,  }\item[{int}]{ligne,  }\item[{int}]{colonne }\end{DoxyParamCaption})}
+
+
+
+Fonction qui retourne une chaîne de caractères contenant les couleurs de chaque case d\textquotesingle{}une matrice. 
+
+
+\begin{DoxyParams}{Paramètres}
+{\em matrice} & un pointeur vers le tableau de cases à parcourir \\
+\hline
+{\em ligne} & le nombre de lignes de la matrice \\
+\hline
+{\em colonne} & le nombre de colonnes de la matrice\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Renvoie}
+un pointeur vers la chaîne de caractères contenant les couleurs des cases de la matrice 
+
+N\+U\+LL si l\textquotesingle{}allocation de mémoire pour la chaîne a échoué 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__fonct__jeu_gac0107497690de4cbc2ea1bb20c704f47}\label{group__fonct__jeu_gac0107497690de4cbc2ea1bb20c704f47}} 
+\index{Fonctions du jeu@{Fonctions du jeu}!getSize@{getSize}}
+\index{getSize@{getSize}!Fonctions du jeu@{Fonctions du jeu}}
+\doxysubsubsection{\texorpdfstring{getSize()}{getSize()}}
+{\footnotesize\ttfamily char $\ast$ get\+Size (\begin{DoxyParamCaption}\item[{int}]{l,  }\item[{int}]{c }\end{DoxyParamCaption})}
+
+Renvoie une chaîne de caractères représentant la taille de la grille.
+
+
+\begin{DoxyParams}{Paramètres}
+{\em l} & le nombre de lignes de la grille \\
+\hline
+{\em c} & le nombre de colonnes de la grille\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Renvoie}
+une chaîne de caractères de la forme \char`\"{}cxl\char`\"{}, où c est le nombre de colonnes et l est le nombre de lignes. La chaîne renvoyée est allouée dynamiquement et doit être libérée par l\textquotesingle{}appelant après utilisation. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__fonct__jeu_ga822846a0282161ad2349a86b8c23c2b4}\label{group__fonct__jeu_ga822846a0282161ad2349a86b8c23c2b4}} 
+\index{Fonctions du jeu@{Fonctions du jeu}!getVersion@{getVersion}}
+\index{getVersion@{getVersion}!Fonctions du jeu@{Fonctions du jeu}}
+\doxysubsubsection{\texorpdfstring{getVersion()}{getVersion()}}
+{\footnotesize\ttfamily char $\ast$ get\+Version (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Renvoie la version actuelle du programme. 
+
+\begin{DoxyReturn}{Renvoie}
+un pointeur vers une chaîne de caractères représentant la version du programme. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__fonct__jeu_ga272be44dee3b3ac371449b96d9e6032a}\label{group__fonct__jeu_ga272be44dee3b3ac371449b96d9e6032a}} 
+\index{Fonctions du jeu@{Fonctions du jeu}!getWaitTime@{getWaitTime}}
+\index{getWaitTime@{getWaitTime}!Fonctions du jeu@{Fonctions du jeu}}
+\doxysubsubsection{\texorpdfstring{getWaitTime()}{getWaitTime()}}
+{\footnotesize\ttfamily char $\ast$ get\+Wait\+Time (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$}]{liste,  }\item[{int}]{i }\end{DoxyParamCaption})}
+
+
+
+Calcule le temps restant avant que le client ne puisse envoyer une autre requête. 
+
+
+\begin{DoxyParams}{Paramètres}
+{\em liste} & un pointeur vers la liste des clients connectés. \\
+\hline
+{\em i} & l\textquotesingle{}identifiant du client.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Renvoie}
+un pointeur vers une chaîne de caractères représentant le temps d\textquotesingle{}attente restant en secondes. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__fonct__jeu_gae20bfb5faa6fc07ecebf988aa9b40a36}\label{group__fonct__jeu_gae20bfb5faa6fc07ecebf988aa9b40a36}} 
+\index{Fonctions du jeu@{Fonctions du jeu}!initMatrice@{initMatrice}}
+\index{initMatrice@{initMatrice}!Fonctions du jeu@{Fonctions du jeu}}
+\doxysubsubsection{\texorpdfstring{initMatrice()}{initMatrice()}}
+{\footnotesize\ttfamily void init\+Matrice (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$}]{matrice,  }\item[{int}]{taille }\end{DoxyParamCaption})}
+
+Initialise la matrice en donnant à chaque case la couleur blanche (255255255).
+
+
+\begin{DoxyParams}{Paramètres}
+{\em matrice} & Un pointeur vers le tableau de cases à initialiser. \\
+\hline
+{\em taille} & La taille du tableau de cases. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Renvoie}
+Aucune valeur de retour. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{group__fonct__jeu_gab0e89b050633603f5307034ef3412860}\label{group__fonct__jeu_gab0e89b050633603f5307034ef3412860}} 
+\index{Fonctions du jeu@{Fonctions du jeu}!selectMot@{selectMot}}
+\index{selectMot@{selectMot}!Fonctions du jeu@{Fonctions du jeu}}
+\doxysubsubsection{\texorpdfstring{selectMot()}{selectMot()}}
+{\footnotesize\ttfamily void select\+Mot (\begin{DoxyParamCaption}\item[{char}]{phrase\mbox{[}\+L\+G\+\_\+\+M\+E\+S\+S\+A\+G\+E $\ast$sizeof(char)\mbox{]},  }\item[{int}]{nombre,  }\item[{char}]{separateur\mbox{[}1\mbox{]},  }\item[{char $\ast$}]{mot }\end{DoxyParamCaption})}
+
+
+
+Sélectionne un mot spécifique dans une phrase donnée en fonction de sa position. 
+
+
+\begin{DoxyParams}{Paramètres}
+{\em phrase} & une chaîne de caractères représentant la phrase à analyser. \\
+\hline
+{\em nombre} & la position du mot à sélectionner dans la phrase. \\
+\hline
+{\em separateur} & une chaîne de caractères représentant le séparateur entre les mots dans la phrase. \\
+\hline
+{\em mot} & un pointeur vers une chaîne de caractères où le mot sélectionné sera stocké. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{group__fonct__jeu_ga1c35e85527bdb6f9adaf349d3fa2b2fc}\label{group__fonct__jeu_ga1c35e85527bdb6f9adaf349d3fa2b2fc}} 
+\index{Fonctions du jeu@{Fonctions du jeu}!setPixel@{setPixel}}
+\index{setPixel@{setPixel}!Fonctions du jeu@{Fonctions du jeu}}
+\doxysubsubsection{\texorpdfstring{setPixel()}{setPixel()}}
+{\footnotesize\ttfamily char $\ast$ set\+Pixel (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$}]{matrice,  }\item[{int}]{posL,  }\item[{int}]{posC,  }\item[{int}]{l,  }\item[{int}]{c,  }\item[{char $\ast$}]{val }\end{DoxyParamCaption})}
+
+
+
+Modifie la couleur d\textquotesingle{}un pixel dans une matrice. 
+
+
+\begin{DoxyParams}{Paramètres}
+{\em matrice} & Pointeur vers la matrice de cases. \\
+\hline
+{\em posL} & Position en ligne du pixel à modifier. \\
+\hline
+{\em posC} & Position en colonne du pixel à modifier. \\
+\hline
+{\em l} & Nombre de lignes de la matrice. \\
+\hline
+{\em c} & Nombre de colonnes de la matrice. \\
+\hline
+{\em val} & Chaîne de caractères représentant la nouvelle couleur du pixel, sous la forme \char`\"{}\+R\+R\+R\+V\+V\+V\+B\+B\+B\char`\"{}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Renvoie}
+Retourne une chaîne de caractères indiquant le statut de la modification. \char`\"{}00 O\+K\char`\"{} si la modification s\textquotesingle{}est déroulée avec succès, \char`\"{}11 Out Of Bound\char`\"{} si la position du pixel est hors des limites de la matrice, ou \char`\"{}12 Bad Color\char`\"{} si la chaîne de caractères ne représente pas une couleur valide. 
+\end{DoxyReturn}

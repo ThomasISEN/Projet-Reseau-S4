@@ -1,0 +1,35 @@
+\hypertarget{structCLIENT}{}\doxysection{Référence de la structure C\+L\+I\+E\+NT}
+\label{structCLIENT}\index{CLIENT@{CLIENT}}
+
+
+Graphe de collaboration de C\+L\+I\+E\+NT\+:
+% FIG 0
+\doxysubsection*{Attributs publics}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structCLIENT_a9666058640013914becc617857133cec}\label{structCLIENT_a9666058640013914becc617857133cec}} 
+int {\bfseries id}
+\item 
+\mbox{\Hypertarget{structCLIENT_ac5f8ee221182f9bb9c75bab73b751a87}\label{structCLIENT_ac5f8ee221182f9bb9c75bab73b751a87}} 
+clock\+\_\+t {\bfseries timer}
+\item 
+\mbox{\Hypertarget{structCLIENT_aef5e8f44d768a928c71b0f25aab792c9}\label{structCLIENT_aef5e8f44d768a928c71b0f25aab792c9}} 
+int {\bfseries pixel}
+\item 
+\mbox{\Hypertarget{structCLIENT_a2f34ee07b2d6a654ff7ebcecd22ae92f}\label{structCLIENT_a2f34ee07b2d6a654ff7ebcecd22ae92f}} 
+int {\bfseries client\+\_\+fds}
+\item 
+\mbox{\Hypertarget{structCLIENT_aef337ea99feb78306f43a1bf662e9249}\label{structCLIENT_aef337ea99feb78306f43a1bf662e9249}} 
+struct pollfd {\bfseries fds}
+\item 
+\mbox{\Hypertarget{structCLIENT_ab6f95346cd55314266c040f034503b8b}\label{structCLIENT_ab6f95346cd55314266c040f034503b8b}} 
+\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$ {\bfseries suiv}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Description détaillée}
+structure des clients 
+
+La documentation de cette structure a été générée à partir du fichier suivant \+:\begin{DoxyCompactItemize}
+\item 
+/mnt/d/\+Documents/\+I\+S\+E\+N2/\+Reseaux/\+Projet/\+Projet-\/\+Reseau-\/\+S4/\+Serveur/Serveur\+T\+C\+P.\+c\end{DoxyCompactItemize}

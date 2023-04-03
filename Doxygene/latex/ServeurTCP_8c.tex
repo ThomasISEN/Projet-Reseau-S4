@@ -1,0 +1,141 @@
+\hypertarget{ServeurTCP_8c}{}\doxysection{Référence du fichier /mnt/d/\+Documents/\+I\+S\+E\+N2/\+Reseaux/\+Projet/\+Projet-\/\+Reseau-\/\+S4/\+Serveur/\+Serveur\+T\+CP.c}
+\label{ServeurTCP_8c}\index{/mnt/d/Documents/ISEN2/Reseaux/Projet/Projet-\/Reseau-\/S4/Serveur/ServeurTCP.c@{/mnt/d/Documents/ISEN2/Reseaux/Projet/Projet-\/Reseau-\/S4/Serveur/ServeurTCP.c}}
+
+
+Gestion du serveur.  
+
+
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$unistd.\+h$>$}\newline
+{\ttfamily \#include $<$errno.\+h$>$}\newline
+{\ttfamily \#include $<$sys/socket.\+h$>$}\newline
+{\ttfamily \#include $<$arpa/inet.\+h$>$}\newline
+{\ttfamily \#include $<$netinet/in.\+h$>$}\newline
+{\ttfamily \#include $<$sys/types.\+h$>$}\newline
+{\ttfamily \#include $<$poll.\+h$>$}\newline
+{\ttfamily \#include $<$time.\+h$>$}\newline
+Graphe des dépendances par inclusion de Serveur\+T\+C\+P.\+c\+:
+% FIG 0
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structCASE}{C\+A\+SE}}
+\item 
+struct \mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{ServeurTCP_8c_aeda086401816627427cad30477f53556}\label{ServeurTCP_8c_aeda086401816627427cad30477f53556}} 
+\#define {\bfseries L\+G\+\_\+\+M\+E\+S\+S\+A\+GE}~1024
+\item 
+\mbox{\Hypertarget{ServeurTCP_8c_a5caebf870bad746770549a3e5fa09495}\label{ServeurTCP_8c_a5caebf870bad746770549a3e5fa09495}} 
+\#define {\bfseries M\+A\+X\+\_\+\+P\+I\+X\+EL}~1
+\item 
+\mbox{\Hypertarget{ServeurTCP_8c_ab8ba2d8f79af5ca38005742bbc29a927}\label{ServeurTCP_8c_ab8ba2d8f79af5ca38005742bbc29a927}} 
+\#define {\bfseries M\+A\+X\+\_\+\+C\+L\+I\+E\+NT}~10
+\end{DoxyCompactItemize}
+\doxysubsection*{Définitions de type}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{ServeurTCP_8c_aaf5114f67174c54eda3370e387e349d7}\label{ServeurTCP_8c_aaf5114f67174c54eda3370e387e349d7}} 
+typedef struct \mbox{\hyperlink{structCASE}{C\+A\+SE}} {\bfseries C\+A\+SE}
+\item 
+\mbox{\Hypertarget{ServeurTCP_8c_a850523f2b1f7fcdca50fb8b0a3cb3749}\label{ServeurTCP_8c_a850523f2b1f7fcdca50fb8b0a3cb3749}} 
+typedef struct \mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} {\bfseries C\+L\+I\+E\+NT}
+\end{DoxyCompactItemize}
+\doxysubsection*{Fonctions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{group__fonct__jeu_gae20bfb5faa6fc07ecebf988aa9b40a36}{init\+Matrice}} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice, int taille)
+\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga1c35e85527bdb6f9adaf349d3fa2b2fc}{set\+Pixel}} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice, int posL, int posC, int l, int c, char $\ast$val)
+\begin{DoxyCompactList}\small\item\em Modifie la couleur d\textquotesingle{}un pixel dans une matrice. \end{DoxyCompactList}\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga939c702975da2d32ef38d09554e326f8}{get\+Matrice}} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice, int ligne, int colonne)
+\begin{DoxyCompactList}\small\item\em Fonction qui retourne une chaîne de caractères contenant les couleurs de chaque case d\textquotesingle{}une matrice. \end{DoxyCompactList}\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_gac0107497690de4cbc2ea1bb20c704f47}{get\+Size}} (int l, int c)
+\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_gaccb8bf088c40a4004765279df35d6fb8}{get\+Limits}} (int l, int c, int pix\+\_\+\+Min)
+\begin{DoxyCompactList}\small\item\em Récupère la limite minimale de pixel pour une image de dimensions spécifiées. \end{DoxyCompactList}\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga822846a0282161ad2349a86b8c23c2b4}{get\+Version}} ()
+\begin{DoxyCompactList}\small\item\em Renvoie la version actuelle du programme. \end{DoxyCompactList}\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga272be44dee3b3ac371449b96d9e6032a}{get\+Wait\+Time}} (\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste, int i)
+\begin{DoxyCompactList}\small\item\em Calcule le temps restant avant que le client ne puisse envoyer une autre requête. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{ServeurTCP_8c_a1e9f9597bab3a71b30cfb477f3444f2b}\label{ServeurTCP_8c_a1e9f9597bab3a71b30cfb477f3444f2b}} 
+void {\bfseries strip\+Func} (char phrase\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE $\ast$sizeof(char)\mbox{]})
+\item 
+void \mbox{\hyperlink{group__fonct__jeu_gab0e89b050633603f5307034ef3412860}{select\+Mot}} (char phrase\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE $\ast$sizeof(char)\mbox{]}, int nombre, char separateur\mbox{[}1\mbox{]}, char $\ast$mot)
+\begin{DoxyCompactList}\small\item\em Sélectionne un mot spécifique dans une phrase donnée en fonction de sa position. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{ServeurTCP_8c_a93d038ed0fb4565c923ade2148214485}\label{ServeurTCP_8c_a93d038ed0fb4565c923ade2148214485}} 
+void {\bfseries affiche\+Matrice} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice)
+\item 
+int \mbox{\hyperlink{group__fonct__reseau_ga5ece610682861d1713357ebe3d61997f}{create\+Socket}} ()
+\begin{DoxyCompactList}\small\item\em Crée une nouvelle socket T\+C\+P/\+IP. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{group__fonct__reseau_gabe2770622c6fe670c0d69a32aec56194}{bind\+Socket}} (int socket\+Ecoute, int port)
+\begin{DoxyCompactList}\small\item\em Associe la socket à un port spécifié. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{group__fonct__reseau_gaf7fb77bd49683171bed93596081a7f18}{listen\+Socket}} (int socket\+Ecoute)
+\begin{DoxyCompactList}\small\item\em Place la socket en mode d\textquotesingle{}écoute passive. \end{DoxyCompactList}\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__reseau_ga2da2d127e8b28985cdf6e9c98f222335}{interpretation\+Msg}} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice, int l, int c, char message\+Recu\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE\mbox{]}, \mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste\+\_\+client, int i, int max\+Pixel)
+\item 
+void \mbox{\hyperlink{ServeurTCP_8c_a80b911004ea2a19e3d3e438222e14a38}{main\+Serveur}} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice, int l, int c, int socket\+Ecoute, \mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste\+\_\+client, int max\+Pixel)
+\item 
+\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$ \mbox{\hyperlink{group__fonct__client_gac05ed254304a2d5af78a5dd865cbf5a8}{creer\+Client}} (int max\+Pixel)
+\item 
+\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$ \mbox{\hyperlink{group__fonct__client_gaa735946c717aa8c19f35afdcc3f39857}{ajouter\+Client}} (\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste, \mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$pers)
+\item 
+\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$ \mbox{\hyperlink{group__fonct__client_gad8648e36afe2ccc995c985f7f748c60f}{supprime\+Client}} (\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste, int id\+Sup)
+\item 
+\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$ \mbox{\hyperlink{group__fonct__client_ga04c8441ecf27f4b3cc1812983acd8b8b}{actualise\+Client}} (\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste\+\_\+client, struct pollfd $\ast$fds)
+\item 
+\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$ \mbox{\hyperlink{group__fonct__client_ga6c392190d9cbd8fd648d875ac6af8ec0}{deduire\+Pixel}} (\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste, int i)
+\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga16fada0c8bb9e161532c79fbdce98de5}{base64\+\_\+encode}} (const char $\ast$rgb)
+\item 
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_gab8cca7e003ba6fed5fe50c11624958e2}{base64\+\_\+decode}} (const char $\ast$message\+Recu)
+\item 
+\mbox{\Hypertarget{ServeurTCP_8c_a4865186329ef4748e88deef316daa7da}\label{ServeurTCP_8c_a4865186329ef4748e88deef316daa7da}} 
+void {\bfseries afficher\+\_\+id\+\_\+clients} (struct \mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste\+\_\+client)
+\item 
+\mbox{\Hypertarget{ServeurTCP_8c_a0ddf1224851353fc92bfbff6f499fa97}\label{ServeurTCP_8c_a0ddf1224851353fc92bfbff6f499fa97}} 
+int {\bfseries main} (int argc, char $\ast$argv\mbox{[}$\,$\mbox{]})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Description détaillée}
+Gestion du serveur. 
+
+\begin{DoxyAuthor}{Auteur}
+Denis Arrahmani Massard 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+1 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+31 mars 2023 
+\end{DoxyDate}
+
+
+\doxysubsection{Documentation des fonctions}
+\mbox{\Hypertarget{ServeurTCP_8c_a80b911004ea2a19e3d3e438222e14a38}\label{ServeurTCP_8c_a80b911004ea2a19e3d3e438222e14a38}} 
+\index{ServeurTCP.c@{ServeurTCP.c}!mainServeur@{mainServeur}}
+\index{mainServeur@{mainServeur}!ServeurTCP.c@{ServeurTCP.c}}
+\doxysubsubsection{\texorpdfstring{mainServeur()}{mainServeur()}}
+{\footnotesize\ttfamily void main\+Serveur (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$}]{matrice,  }\item[{int}]{l,  }\item[{int}]{c,  }\item[{int}]{socket\+Ecoute,  }\item[{\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$}]{liste\+\_\+client,  }\item[{int}]{max\+Pixel }\end{DoxyParamCaption})}
+
+Fonction principale du serveur qui gère les connexions avec les clients. 
+\begin{DoxyParams}{Paramètres}
+{\em matrice} & la matrice représentant l\textquotesingle{}image à afficher \\
+\hline
+{\em l} & le nombre de lignes de la matrice \\
+\hline
+{\em c} & le nombre de colonnes de la matrice \\
+\hline
+{\em socket\+Ecoute} & le socket d\textquotesingle{}écoute sur lequel le serveur accepte les connexions entrantes \\
+\hline
+{\em liste\+\_\+client} & la liste chaînée des clients connectés au serveur \\
+\hline
+{\em max\+Pixel} & le nombre maximal de pixels modifiables par un client \\
+\hline
+\end{DoxyParams}
