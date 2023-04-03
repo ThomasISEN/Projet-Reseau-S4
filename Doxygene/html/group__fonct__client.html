@@ -112,15 +112,15 @@ Fonctions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>actualiseClient : Fonction qui actualise l'état des clients en fonction des événements du poll.</p>
+<p>actualiseClient Fonction qui actualise l'état des clients en fonction des événements du poll.</p>
 <dl class="params"><dt>Paramètres</dt><dd>
   <table class="params">
-    <tr><td class="paramname">liste_client</td><td>: Pointeur vers la liste des clients connectés. </td></tr>
-    <tr><td class="paramname">fds</td><td>: Tableau de pollfd contenant les événements à surveiller pour chaque client.</td></tr>
+    <tr><td class="paramname">liste_client</td><td>Pointeur vers la liste des clients connectés. </td></tr>
+    <tr><td class="paramname">fds</td><td>Tableau de pollfd contenant les événements à surveiller pour chaque client.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Renvoie</dt><dd>: Un pointeur vers la liste des clients connectés mise à jour. </dd></dl>
+<dl class="section return"><dt>Renvoie</dt><dd>Un pointeur vers la liste des clients connectés mise à jour. </dd></dl>
 
 </div>
 </div>
@@ -149,15 +149,15 @@ Fonctions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>ajouterClient : Fonction qui ajoute un client à la liste des clients connectés.</p>
+<p>ajouterClient Fonction qui ajoute un client à la liste des clients connectés.</p>
 <dl class="params"><dt>Paramètres</dt><dd>
   <table class="params">
-    <tr><td class="paramname">liste</td><td>: Pointeur vers la liste des clients connectés. </td></tr>
-    <tr><td class="paramname">pers</td><td>: Pointeur vers la structure <a class="el" href="structCLIENT.html">CLIENT</a> contenant les informations du client à ajouter.</td></tr>
+    <tr><td class="paramname">liste</td><td>Pointeur vers la liste des clients connectés. </td></tr>
+    <tr><td class="paramname">pers</td><td>Pointeur vers la structure <a class="el" href="structCLIENT.html">CLIENT</a> contenant les informations du client à ajouter.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Renvoie</dt><dd>: Un pointeur vers la nouvelle liste des clients connectés. </dd></dl>
+<dl class="section return"><dt>Renvoie</dt><dd>Un pointeur vers la nouvelle liste des clients connectés. </dd></dl>
 
 </div>
 </div>
@@ -176,14 +176,14 @@ Fonctions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>creerClient : Fonction qui crée un nouveau client.</p>
+<p>creerClient Fonction qui crée un nouveau client.</p>
 <dl class="params"><dt>Paramètres</dt><dd>
   <table class="params">
-    <tr><td class="paramname">maxPixel</td><td>: Le nombre maximal de pixels que le client peut envoyer.</td></tr>
+    <tr><td class="paramname">maxPixel</td><td>Le nombre maximal de pixels que le client peut envoyer.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Renvoie</dt><dd>: Un pointeur vers le nouveau client créé. </dd></dl>
+<dl class="section return"><dt>Renvoie</dt><dd>Un pointeur vers le nouveau client créé. </dd></dl>
 
 </div>
 </div>
@@ -212,15 +212,15 @@ Fonctions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>deduirePixel : Fonction qui déduit un pixel du compte d'un client en fonction de son identifiant.</p>
+<p>deduirePixel Fonction qui déduit un pixel du compte d'un client en fonction de son identifiant.</p>
 <dl class="params"><dt>Paramètres</dt><dd>
   <table class="params">
-    <tr><td class="paramname">liste</td><td>: Pointeur vers la liste des clients connectés. </td></tr>
-    <tr><td class="paramname">i</td><td>: Identifiant du client dont on veut déduire un pixel.</td></tr>
+    <tr><td class="paramname">liste</td><td>Pointeur vers la liste des clients connectés. </td></tr>
+    <tr><td class="paramname">i</td><td>Identifiant du client dont on veut déduire un pixel.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Renvoie</dt><dd>: Un pointeur vers la nouvelle liste des clients connectés. </dd></dl>
+<dl class="section return"><dt>Renvoie</dt><dd>Un pointeur vers la nouvelle liste des clients connectés. </dd></dl>
 
 </div>
 </div>
@@ -249,15 +249,15 @@ Fonctions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>supprimeClient : Fonction qui supprime un client de la liste des clients connectés en fonction de son identifiant.</p>
+<p>supprimeClient Fonction qui supprime un client de la liste des clients connectés en fonction de son identifiant.</p>
 <dl class="params"><dt>Paramètres</dt><dd>
   <table class="params">
-    <tr><td class="paramname">liste</td><td>: Pointeur vers la liste des clients connectés. </td></tr>
-    <tr><td class="paramname">idSup</td><td>: Identifiant du client à supprimer.</td></tr>
+    <tr><td class="paramname">liste</td><td>Pointeur vers la liste des clients connectés. </td></tr>
+    <tr><td class="paramname">idSup</td><td>Identifiant du client à supprimer.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Renvoie</dt><dd>: Un pointeur vers la nouvelle liste des clients connectés. </dd></dl>
+<dl class="section return"><dt>Renvoie</dt><dd>Un pointeur vers la nouvelle liste des clients connectés. </dd></dl>
 
 </div>
 </div>

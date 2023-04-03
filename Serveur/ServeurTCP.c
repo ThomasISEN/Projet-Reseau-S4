@@ -546,8 +546,6 @@ char *getSize(int l, int c){
 /**
  * @brief Récupère la limite minimale de pixel pour une image de dimensions spécifiées.
  * 
- * @param l Le nombre de lignes de l'image.
- * @param c Le nombre de colonnes de l'image.
  * @param pix_Min Le pixel minimum de l'image.
  * 
  * @return Un pointeur vers une chaîne de caractères représentant la limite minimale de pixel.

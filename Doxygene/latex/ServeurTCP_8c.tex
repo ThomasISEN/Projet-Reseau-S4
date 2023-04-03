@@ -31,9 +31,6 @@ struct \mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}}
 \mbox{\Hypertarget{ServeurTCP_8c_aeda086401816627427cad30477f53556}\label{ServeurTCP_8c_aeda086401816627427cad30477f53556}} 
 \#define {\bfseries L\+G\+\_\+\+M\+E\+S\+S\+A\+GE}~1024
 \item 
-\mbox{\Hypertarget{ServeurTCP_8c_a5caebf870bad746770549a3e5fa09495}\label{ServeurTCP_8c_a5caebf870bad746770549a3e5fa09495}} 
-\#define {\bfseries M\+A\+X\+\_\+\+P\+I\+X\+EL}~1
-\item 
 \mbox{\Hypertarget{ServeurTCP_8c_ab8ba2d8f79af5ca38005742bbc29a927}\label{ServeurTCP_8c_ab8ba2d8f79af5ca38005742bbc29a927}} 
 \#define {\bfseries M\+A\+X\+\_\+\+C\+L\+I\+E\+NT}~10
 \end{DoxyCompactItemize}
@@ -57,20 +54,14 @@ char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga939c702975da2d32ef38d09554e326f
 \begin{DoxyCompactList}\small\item\em Fonction qui retourne une chaîne de caractères contenant les couleurs de chaque case d\textquotesingle{}une matrice. \end{DoxyCompactList}\item 
 char $\ast$ \mbox{\hyperlink{group__fonct__jeu_gac0107497690de4cbc2ea1bb20c704f47}{get\+Size}} (int l, int c)
 \item 
-char $\ast$ \mbox{\hyperlink{group__fonct__jeu_gaccb8bf088c40a4004765279df35d6fb8}{get\+Limits}} (int l, int c, int pix\+\_\+\+Min)
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga45a9d23d11495c113b7c04a4832d7a84}{get\+Limits}} (int pix\+\_\+\+Min)
 \begin{DoxyCompactList}\small\item\em Récupère la limite minimale de pixel pour une image de dimensions spécifiées. \end{DoxyCompactList}\item 
 char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga822846a0282161ad2349a86b8c23c2b4}{get\+Version}} ()
 \begin{DoxyCompactList}\small\item\em Renvoie la version actuelle du programme. \end{DoxyCompactList}\item 
 char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga272be44dee3b3ac371449b96d9e6032a}{get\+Wait\+Time}} (\mbox{\hyperlink{structCLIENT}{C\+L\+I\+E\+NT}} $\ast$liste, int i)
 \begin{DoxyCompactList}\small\item\em Calcule le temps restant avant que le client ne puisse envoyer une autre requête. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{ServeurTCP_8c_a1e9f9597bab3a71b30cfb477f3444f2b}\label{ServeurTCP_8c_a1e9f9597bab3a71b30cfb477f3444f2b}} 
-void {\bfseries strip\+Func} (char phrase\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE $\ast$sizeof(char)\mbox{]})
-\item 
 void \mbox{\hyperlink{group__fonct__jeu_gab0e89b050633603f5307034ef3412860}{select\+Mot}} (char phrase\mbox{[}L\+G\+\_\+\+M\+E\+S\+S\+A\+GE $\ast$sizeof(char)\mbox{]}, int nombre, char separateur\mbox{[}1\mbox{]}, char $\ast$mot)
 \begin{DoxyCompactList}\small\item\em Sélectionne un mot spécifique dans une phrase donnée en fonction de sa position. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{ServeurTCP_8c_a93d038ed0fb4565c923ade2148214485}\label{ServeurTCP_8c_a93d038ed0fb4565c923ade2148214485}} 
-void {\bfseries affiche\+Matrice} (\mbox{\hyperlink{structCASE}{C\+A\+SE}} $\ast$matrice)
-\item 
 int \mbox{\hyperlink{group__fonct__reseau_ga5ece610682861d1713357ebe3d61997f}{create\+Socket}} ()
 \begin{DoxyCompactList}\small\item\em Crée une nouvelle socket T\+C\+P/\+IP. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{group__fonct__reseau_gabe2770622c6fe670c0d69a32aec56194}{bind\+Socket}} (int socket\+Ecoute, int port)

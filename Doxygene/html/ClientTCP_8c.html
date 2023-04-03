@@ -95,34 +95,34 @@ Macros</h2></td></tr>
 <tr class="memitem:aeda086401816627427cad30477f53556"><td class="memItemLeft" align="right" valign="top"><a id="aeda086401816627427cad30477f53556"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>LG_MESSAGE</b>&#160;&#160;&#160;1024</td></tr>
 <tr class="separator:aeda086401816627427cad30477f53556"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a614217d263be1fb1a5f76e2ff7be19a2"><td class="memItemLeft" align="right" valign="top"><a id="a614217d263be1fb1a5f76e2ff7be19a2"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PORT</b>&#160;&#160;&#160;IPPORT_USERRESERVED</td></tr>
-<tr class="separator:a614217d263be1fb1a5f76e2ff7be19a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Fonctions</h2></td></tr>
-<tr class="memitem:ga209a74989028a1c4a879fd992c8cbd7a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga209a74989028a1c4a879fd992c8cbd7a">mainClient</a> (int socketEcoute, WINDOW *boite)</td></tr>
-<tr class="separator:ga209a74989028a1c4a879fd992c8cbd7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3d9d623599e4888955b8ce690c5eb85e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga3d9d623599e4888955b8ce690c5eb85e">mainClient</a> (int socketEcoute)</td></tr>
+<tr class="separator:ga3d9d623599e4888955b8ce690c5eb85e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5ece610682861d1713357ebe3d61997f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga5ece610682861d1713357ebe3d61997f">createSocket</a> ()</td></tr>
 <tr class="memdesc:ga5ece610682861d1713357ebe3d61997f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Crée une nouvelle socket TCP/IP.  <a href="group__fonct__duClient.html#ga5ece610682861d1713357ebe3d61997f">Plus de détails...</a><br /></td></tr>
 <tr class="separator:ga5ece610682861d1713357ebe3d61997f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gace91f0bb29e522cc1abb796e6a9ca317"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#gace91f0bb29e522cc1abb796e6a9ca317">bindSocket</a> (int socketEcoute, int port, char *ip)</td></tr>
 <tr class="separator:gace91f0bb29e522cc1abb796e6a9ca317"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga497ea4221dde3e453c115703bafae845"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga497ea4221dde3e453c115703bafae845">interpretationMsg</a> (char messageRecu[LG_MESSAGE], char messageEnvoi[LG_MESSAGE], int l, int c, WINDOW *boite)</td></tr>
-<tr class="memdesc:ga497ea4221dde3e453c115703bafae845"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interprète les messages reçus du serveur et affiche les messages appropriés ou la matrice de pixels.  <a href="group__fonct__duClient.html#ga497ea4221dde3e453c115703bafae845">Plus de détails...</a><br /></td></tr>
-<tr class="separator:ga497ea4221dde3e453c115703bafae845"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4c8e89cdea3dddb6ae1431c996a04f98"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga4c8e89cdea3dddb6ae1431c996a04f98">interpretationMatrice</a> (char messageRecu[LG_MESSAGE], WINDOW *boite, int l, int c)</td></tr>
-<tr class="memdesc:ga4c8e89cdea3dddb6ae1431c996a04f98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Décodage et affichage de la matrice d'image à partir d'une chaîne encodée en base64.  <a href="group__fonct__duClient.html#ga4c8e89cdea3dddb6ae1431c996a04f98">Plus de détails...</a><br /></td></tr>
-<tr class="separator:ga4c8e89cdea3dddb6ae1431c996a04f98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8ce99e02cbfdc71bf27365ccaedd76fd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga8ce99e02cbfdc71bf27365ccaedd76fd">interpretationMsg</a> (char messageRecu[LG_MESSAGE], char messageEnvoi[LG_MESSAGE], int l, int c, int *matrice)</td></tr>
+<tr class="memdesc:ga8ce99e02cbfdc71bf27365ccaedd76fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interprète les messages reçus du serveur et affiche les messages appropriés ou la matrice de pixels.  <a href="group__fonct__duClient.html#ga8ce99e02cbfdc71bf27365ccaedd76fd">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga8ce99e02cbfdc71bf27365ccaedd76fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabcddeb9c480f8ebff0f998807c9beb0f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#gabcddeb9c480f8ebff0f998807c9beb0f">interpretationMatrice</a> (const char messageRecu[LG_MESSAGE], const int l, const int c, int *matrice)</td></tr>
+<tr class="memdesc:gabcddeb9c480f8ebff0f998807c9beb0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Décodage et affichage de la matrice d'image à partir d'une chaîne encodée en base64.  <a href="group__fonct__duClient.html#gabcddeb9c480f8ebff0f998807c9beb0f">Plus de détails...</a><br /></td></tr>
+<tr class="separator:gabcddeb9c480f8ebff0f998807c9beb0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2f0ac9b0cd9c4a7749ee795760831c38"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga2f0ac9b0cd9c4a7749ee795760831c38">selectMot</a> (char phrase[LG_MESSAGE *sizeof(char)], int nombre, char *mot)</td></tr>
 <tr class="memdesc:ga2f0ac9b0cd9c4a7749ee795760831c38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sélectionne un mot dans une phrase en fonction de sa position.  <a href="group__fonct__duClient.html#ga2f0ac9b0cd9c4a7749ee795760831c38">Plus de détails...</a><br /></td></tr>
 <tr class="separator:ga2f0ac9b0cd9c4a7749ee795760831c38"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga78758eb11f265279dda6de0c16233b4b"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga78758eb11f265279dda6de0c16233b4b">affichage</a> (WINDOW *boite)</td></tr>
-<tr class="separator:ga78758eb11f265279dda6de0c16233b4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0f7c3c706985ebff2717c7baaab129ad"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga0f7c3c706985ebff2717c7baaab129ad">affichage</a> ()</td></tr>
+<tr class="separator:ga0f7c3c706985ebff2717c7baaab129ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga616ffd3938004612b22658f1d8d4941e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga616ffd3938004612b22658f1d8d4941e">affichageEntree</a> (int socketEcoute)</td></tr>
 <tr class="separator:ga616ffd3938004612b22658f1d8d4941e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga50a18c0e0633f91c69780f6401655abe"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#ga50a18c0e0633f91c69780f6401655abe">base64_encode</a> (const char *rgb)</td></tr>
 <tr class="separator:ga50a18c0e0633f91c69780f6401655abe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae141b8794f7c044cecb81d452acabc29"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__duClient.html#gae141b8794f7c044cecb81d452acabc29">afficherCouleurs</a> (int *tableauRGB, const int l, const int c)</td></tr>
+<tr class="memdesc:gae141b8794f7c044cecb81d452acabc29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Affiche la matrice de jeu en couleur.  <a href="group__fonct__duClient.html#gae141b8794f7c044cecb81d452acabc29">Plus de détails...</a><br /></td></tr>
+<tr class="separator:gae141b8794f7c044cecb81d452acabc29"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft" align="right" valign="top"><a id="a0ddf1224851353fc92bfbff6f499fa97"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>main</b> (int argc, char *argv[])</td></tr>
 <tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>

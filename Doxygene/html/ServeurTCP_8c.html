@@ -107,9 +107,6 @@ Macros</h2></td></tr>
 <tr class="memitem:aeda086401816627427cad30477f53556"><td class="memItemLeft" align="right" valign="top"><a id="aeda086401816627427cad30477f53556"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>LG_MESSAGE</b>&#160;&#160;&#160;1024</td></tr>
 <tr class="separator:aeda086401816627427cad30477f53556"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5caebf870bad746770549a3e5fa09495"><td class="memItemLeft" align="right" valign="top"><a id="a5caebf870bad746770549a3e5fa09495"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>MAX_PIXEL</b>&#160;&#160;&#160;1</td></tr>
-<tr class="separator:a5caebf870bad746770549a3e5fa09495"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab8ba2d8f79af5ca38005742bbc29a927"><td class="memItemLeft" align="right" valign="top"><a id="ab8ba2d8f79af5ca38005742bbc29a927"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>MAX_CLIENT</b>&#160;&#160;&#160;10</td></tr>
 <tr class="separator:ab8ba2d8f79af5ca38005742bbc29a927"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -135,24 +132,18 @@ Fonctions</h2></td></tr>
 <tr class="separator:ga939c702975da2d32ef38d09554e326f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac0107497690de4cbc2ea1bb20c704f47"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#gac0107497690de4cbc2ea1bb20c704f47">getSize</a> (int l, int c)</td></tr>
 <tr class="separator:gac0107497690de4cbc2ea1bb20c704f47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaccb8bf088c40a4004765279df35d6fb8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#gaccb8bf088c40a4004765279df35d6fb8">getLimits</a> (int l, int c, int pix_Min)</td></tr>
-<tr class="memdesc:gaccb8bf088c40a4004765279df35d6fb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Récupère la limite minimale de pixel pour une image de dimensions spécifiées.  <a href="group__fonct__jeu.html#gaccb8bf088c40a4004765279df35d6fb8">Plus de détails...</a><br /></td></tr>
-<tr class="separator:gaccb8bf088c40a4004765279df35d6fb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga45a9d23d11495c113b7c04a4832d7a84"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#ga45a9d23d11495c113b7c04a4832d7a84">getLimits</a> (int pix_Min)</td></tr>
+<tr class="memdesc:ga45a9d23d11495c113b7c04a4832d7a84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Récupère la limite minimale de pixel pour une image de dimensions spécifiées.  <a href="group__fonct__jeu.html#ga45a9d23d11495c113b7c04a4832d7a84">Plus de détails...</a><br /></td></tr>
+<tr class="separator:ga45a9d23d11495c113b7c04a4832d7a84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga822846a0282161ad2349a86b8c23c2b4"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#ga822846a0282161ad2349a86b8c23c2b4">getVersion</a> ()</td></tr>
 <tr class="memdesc:ga822846a0282161ad2349a86b8c23c2b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Renvoie la version actuelle du programme.  <a href="group__fonct__jeu.html#ga822846a0282161ad2349a86b8c23c2b4">Plus de détails...</a><br /></td></tr>
 <tr class="separator:ga822846a0282161ad2349a86b8c23c2b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga272be44dee3b3ac371449b96d9e6032a"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#ga272be44dee3b3ac371449b96d9e6032a">getWaitTime</a> (<a class="el" href="structCLIENT.html">CLIENT</a> *liste, int i)</td></tr>
 <tr class="memdesc:ga272be44dee3b3ac371449b96d9e6032a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calcule le temps restant avant que le client ne puisse envoyer une autre requête.  <a href="group__fonct__jeu.html#ga272be44dee3b3ac371449b96d9e6032a">Plus de détails...</a><br /></td></tr>
 <tr class="separator:ga272be44dee3b3ac371449b96d9e6032a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e9f9597bab3a71b30cfb477f3444f2b"><td class="memItemLeft" align="right" valign="top"><a id="a1e9f9597bab3a71b30cfb477f3444f2b"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>stripFunc</b> (char phrase[LG_MESSAGE *sizeof(char)])</td></tr>
-<tr class="separator:a1e9f9597bab3a71b30cfb477f3444f2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab0e89b050633603f5307034ef3412860"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__jeu.html#gab0e89b050633603f5307034ef3412860">selectMot</a> (char phrase[LG_MESSAGE *sizeof(char)], int nombre, char separateur[1], char *mot)</td></tr>
 <tr class="memdesc:gab0e89b050633603f5307034ef3412860"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sélectionne un mot spécifique dans une phrase donnée en fonction de sa position.  <a href="group__fonct__jeu.html#gab0e89b050633603f5307034ef3412860">Plus de détails...</a><br /></td></tr>
 <tr class="separator:gab0e89b050633603f5307034ef3412860"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a93d038ed0fb4565c923ade2148214485"><td class="memItemLeft" align="right" valign="top"><a id="a93d038ed0fb4565c923ade2148214485"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>afficheMatrice</b> (<a class="el" href="structCASE.html">CASE</a> *matrice)</td></tr>
-<tr class="separator:a93d038ed0fb4565c923ade2148214485"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5ece610682861d1713357ebe3d61997f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__fonct__reseau.html#ga5ece610682861d1713357ebe3d61997f">createSocket</a> ()</td></tr>
 <tr class="memdesc:ga5ece610682861d1713357ebe3d61997f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Crée une nouvelle socket TCP/IP.  <a href="group__fonct__reseau.html#ga5ece610682861d1713357ebe3d61997f">Plus de détails...</a><br /></td></tr>
 <tr class="separator:ga5ece610682861d1713357ebe3d61997f"><td class="memSeparator" colspan="2">&#160;</td></tr>

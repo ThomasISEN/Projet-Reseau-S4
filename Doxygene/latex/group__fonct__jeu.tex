@@ -20,7 +20,7 @@ char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga939c702975da2d32ef38d09554e326f
 \begin{DoxyCompactList}\small\item\em Fonction qui retourne une chaîne de caractères contenant les couleurs de chaque case d\textquotesingle{}une matrice. \end{DoxyCompactList}\item 
 char $\ast$ \mbox{\hyperlink{group__fonct__jeu_gac0107497690de4cbc2ea1bb20c704f47}{get\+Size}} (int l, int c)
 \item 
-char $\ast$ \mbox{\hyperlink{group__fonct__jeu_gaccb8bf088c40a4004765279df35d6fb8}{get\+Limits}} (int l, int c, int pix\+\_\+\+Min)
+char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga45a9d23d11495c113b7c04a4832d7a84}{get\+Limits}} (int pix\+\_\+\+Min)
 \begin{DoxyCompactList}\small\item\em Récupère la limite minimale de pixel pour une image de dimensions spécifiées. \end{DoxyCompactList}\item 
 char $\ast$ \mbox{\hyperlink{group__fonct__jeu_ga822846a0282161ad2349a86b8c23c2b4}{get\+Version}} ()
 \begin{DoxyCompactList}\small\item\em Renvoie la version actuelle du programme. \end{DoxyCompactList}\item 
@@ -66,11 +66,11 @@ Encodes un tableau de caractères en base64.
 \begin{DoxyReturn}{Renvoie}
 Un pointeur vers le tableau de caractères encodé en base64, ou N\+U\+LL en cas d\textquotesingle{}erreur. 
 \end{DoxyReturn}
-\mbox{\Hypertarget{group__fonct__jeu_gaccb8bf088c40a4004765279df35d6fb8}\label{group__fonct__jeu_gaccb8bf088c40a4004765279df35d6fb8}} 
+\mbox{\Hypertarget{group__fonct__jeu_ga45a9d23d11495c113b7c04a4832d7a84}\label{group__fonct__jeu_ga45a9d23d11495c113b7c04a4832d7a84}} 
 \index{Fonctions du jeu@{Fonctions du jeu}!getLimits@{getLimits}}
 \index{getLimits@{getLimits}!Fonctions du jeu@{Fonctions du jeu}}
 \doxysubsubsection{\texorpdfstring{getLimits()}{getLimits()}}
-{\footnotesize\ttfamily char $\ast$ get\+Limits (\begin{DoxyParamCaption}\item[{int}]{l,  }\item[{int}]{c,  }\item[{int}]{pix\+\_\+\+Min }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily char $\ast$ get\+Limits (\begin{DoxyParamCaption}\item[{int}]{pix\+\_\+\+Min }\end{DoxyParamCaption})}
 
 
 
@@ -78,10 +78,6 @@ Récupère la limite minimale de pixel pour une image de dimensions spécifiées
 
 
 \begin{DoxyParams}{Paramètres}
-{\em l} & Le nombre de lignes de l\textquotesingle{}image. \\
-\hline
-{\em c} & Le nombre de colonnes de l\textquotesingle{}image. \\
-\hline
 {\em pix\+\_\+\+Min} & Le pixel minimum de l\textquotesingle{}image.\\
 \hline
 \end{DoxyParams}
